@@ -92,7 +92,7 @@ export default function HomePage() {
                 </div>
                 <div>
                   <div className="text-2xl font-black text-[#302B28]">100%</div>
-                  <div className="text-xs text-[#6B5145] font-medium">Postgres Direct</div>
+                  <div className="text-xs text-[#6B5145] font-medium">Hyperlocal Verified</div>
                 </div>
               </div>
             </div>
@@ -120,12 +120,12 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 2. Live Categories from trug.catalogue_categories */}
+      {/* 2. Explore Categories */}
       <section className="py-14 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-2xl sm:text-3xl font-black text-[#302B28]">Categories from Database</h2>
-            <p className="text-xs sm:text-sm text-[#6B5145] mt-1">Direct from `trug.catalogue_categories` table.</p>
+            <h2 className="text-2xl sm:text-3xl font-black text-[#302B28]">Explore Categories</h2>
+            <p className="text-xs sm:text-sm text-[#6B5145] mt-1">Fresh daily essentials and neighbourhood favourites.</p>
           </div>
           <Link
             href="/shops"
@@ -186,7 +186,7 @@ export default function HomePage() {
               </div>
               <h2 className="text-2xl sm:text-3xl font-black text-[#302B28]">Neighbourhood Stores</h2>
               <p className="text-xs sm:text-sm text-[#6B5145] mt-1">
-                Active in Hyderabad ({currentLocality}) from `trug.locations` & `trug.vendors`.
+                Verified stores right in your locality ({currentLocality}).
               </p>
             </div>
             <Link
@@ -206,7 +206,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 4. Live Catalogue from trug.location_skus */}
+      {/* 4. Popular Items Showcase */}
       <section className="py-14 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -215,7 +215,7 @@ export default function HomePage() {
               <span>Real-Time Inventory</span>
             </div>
             <h2 className="text-2xl sm:text-3xl font-black text-[#302B28]">Popular Catalogue Items</h2>
-            <p className="text-xs sm:text-sm text-[#6B5145] mt-1">Live from `trug.location_skus`.</p>
+            <p className="text-xs sm:text-sm text-[#6B5145] mt-1">Sourced direct from local merchants.</p>
           </div>
           <Link
             href="/shops"
