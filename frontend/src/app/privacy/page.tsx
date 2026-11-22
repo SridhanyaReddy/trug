@@ -69,12 +69,8 @@ export default function PrivacyPolicyPage() {
           <h2 className="text-xl font-semibold text-gray-900">6. Contact Us</h2>
           <p className="text-gray-600 leading-relaxed">
             If you have any questions or require more information about our Privacy Policy, do not hesitate to contact us at{' '}
-            <a href="mailto:support@withtrug.com" className="text-[#D97A5B] underline hover:opacity-80">
-              support@withtrug.com
-            </a>{' '}
-            or{' '}
-            <a href="mailto:privacy@focsera.com" className="text-[#D97A5B] underline hover:opacity-80">
-              privacy@focsera.com
+            <a href="mailto:focseraoff@gmail.com" className="text-[#D97A5B] underline hover:opacity-80">
+              focseraoff@gmail.com
             </a>.
           </p>
         </section>
