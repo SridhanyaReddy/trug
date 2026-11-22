@@ -105,7 +105,7 @@ export default function ProductCard({ product, onOpenRecurringModal }: ProductCa
         )}
       </div>
 
-      {/* Pricing & Add to Cart */}
+      {/* Pricing & Store Details */}
       <div className="mt-4 pt-3.5 border-t border-[#F1E6DC]/70 flex items-center justify-between gap-2">
         <div>
           <div className="flex items-baseline gap-1.5">
@@ -121,42 +121,12 @@ export default function ProductCard({ product, onOpenRecurringModal }: ProductCa
           </span>
         </div>
 
-        <div className="flex items-center gap-1.5">
-          {onOpenRecurringModal && (
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                onOpenRecurringModal(product, selectedVariant);
-              }}
-              title="Set as daily or recurring subscription"
-              className="p-2 rounded-xl bg-[#FAF5F0] hover:bg-[#F1E6DC] text-[#6B5145] hover:text-[#D97A5B] border border-[#F1E6DC] transition"
-            >
-              <Repeat className="w-3.5 h-3.5" />
-            </button>
-          )}
-
-          <button
-            onClick={handleAdd}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-xs tracking-wide ${
-              addedAnimation
-                ? 'bg-[#302B28] text-white'
-                : 'bg-[#D97A5B] hover:bg-[#c2694d] text-white'
-            }`}
-          >
-            {addedAnimation ? (
-              <>
-                <Check className="w-3.5 h-3.5" />
-                <span>Added</span>
-              </>
-            ) : (
-              <>
-                <Plus className="w-3.5 h-3.5" />
-                <span>Add</span>
-              </>
-            )}
-          </button>
-        </div>
+        <Link
+          href={`/product/${product.slug}`}
+          className="px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1 bg-[#F1E6DC] hover:bg-[#D97A5B] hover:text-white text-[#6B5145] shadow-xs"
+        >
+          <span>View</span>
+        </Link>
       </div>
     </div>
   );

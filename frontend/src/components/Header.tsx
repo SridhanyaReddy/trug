@@ -119,20 +119,6 @@ export default function Header() {
               Daily Subscriptions
             </Link>
 
-            {/* Cart Button */}
-            <Link
-              href="/cart"
-              className="relative flex items-center gap-2 bg-[#D97A5B] hover:bg-[#c2694d] text-white px-4 py-2.5 rounded-full font-bold text-xs tracking-wide shadow-sm hover:shadow transition"
-            >
-              <ShoppingBag className="w-4 h-4" />
-              <span className="hidden sm:inline">Cart</span>
-              {totalCartItemCount > 0 && (
-                <span className="bg-[#302B28] text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold">
-                  {totalCartItemCount}
-                </span>
-              )}
-            </Link>
-
             {/* Mobile menu trigger */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}

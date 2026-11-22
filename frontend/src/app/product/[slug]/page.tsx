@@ -169,55 +169,15 @@ function ProductDetailContent() {
               </div>
             </div>
 
-            {/* Quantity Stepper & Buttons */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
-              <div className="flex items-center justify-between bg-[#FAF5F0] px-3 py-2 rounded-2xl border border-[#F1E6DC] w-full sm:w-36">
-                <button
-                  onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                  className="w-8 h-8 rounded-xl bg-white text-[#302B28] font-bold flex items-center justify-center hover:bg-[#F1E6DC] transition shadow-xs"
-                >
-                  <Minus className="w-3.5 h-3.5" />
-                </button>
-                <span className="font-bold text-sm text-[#302B28]">{quantity}</span>
-                <button
-                  onClick={() => setQuantity((q) => q + 1)}
-                  className="w-8 h-8 rounded-xl bg-white text-[#302B28] font-bold flex items-center justify-center hover:bg-[#F1E6DC] transition shadow-xs"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                </button>
-              </div>
-
-              {/* Add to cart */}
-              <button
-                onClick={handleAddToCart}
-                className={`flex-1 py-3.5 rounded-2xl font-bold text-sm transition flex items-center justify-center gap-2 shadow-md ${
-                  addedEffect
-                    ? 'bg-[#302B28] text-white'
-                    : 'bg-[#D97A5B] hover:bg-[#c2694d] text-white'
-                }`}
+            {/* Available At Store */}
+            <div className="pt-2">
+              <Link
+                href={`/store/${product.vendorSlug}`}
+                className="w-full py-3.5 rounded-2xl font-bold text-sm transition flex items-center justify-center gap-2 bg-[#D97A5B] hover:bg-[#c2694d] text-white shadow-md"
               >
-                {addedEffect ? (
-                  <>
-                    <Check className="w-4 h-4" />
-                    <span>Added to Cart!</span>
-                  </>
-                ) : (
-                  <>
-                    <Plus className="w-4 h-4" />
-                    <span>Add to Cart • ₹{selectedVariant.price * quantity}</span>
-                  </>
-                )}
-              </button>
-
-              {/* Daily schedule */}
-              <button
-                onClick={() => setShowRecurringModal(true)}
-                title="Schedule daily delivery"
-                className="px-4 py-3.5 rounded-2xl bg-white hover:bg-[#F1E6DC] text-[#302B28] border border-[#F1E6DC] font-bold text-xs flex items-center justify-center gap-2 transition shrink-0"
-              >
-                <Repeat className="w-4 h-4 text-[#D97A5B]" />
-                <span className="hidden sm:inline">Daily Subscription</span>
-              </button>
+                <Store className="w-4 h-4" />
+                <span>Available at {product.vendorName}</span>
+              </Link>
             </div>
           </div>
 

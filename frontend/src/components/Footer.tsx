@@ -102,7 +102,7 @@ export default function Footer() {
 
           <div>
             <h5 className="text-xs font-bold uppercase tracking-wider text-[#D97A5B] mb-4">
-              Instant Ordering
+              Explore Platform
             </h5>
             <ul className="space-y-2.5 text-xs text-[#FAF5F0]/80">
               <li>
@@ -112,12 +112,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link href="/recurring" className="hover:text-[#D97A5B] transition">
-                  Manage Morning Subscriptions
-                </Link>
-              </li>
-              <li>
-                <Link href="/cart" className="hover:text-[#D97A5B] transition">
-                  Active Shopping Cart
+                  Morning Subscriptions
                 </Link>
               </li>
             </ul>
@@ -141,11 +136,13 @@ export default function Footer() {
         <div className="pt-8 border-t border-[#6B5145]/30 flex flex-col sm:flex-row items-center justify-between text-[11px] text-[#FAF5F0]/60 gap-4">
           <p>© 2026 TRUG by Focsera. Built for local neighbourhoods. All rights reserved.</p>
           <div className="flex gap-4">
-            <span className="hover:text-[#FAF5F0] cursor-pointer">Privacy Policy</span>
+            <Link href="/privacy" className="hover:text-[#D97A5B] transition">
+              Privacy Policy
+            </Link>
             <span>•</span>
-            <span className="hover:text-[#FAF5F0] cursor-pointer">Terms of Service</span>
+            <span className="hover:text-[#FAF5F0]">Terms of Service</span>
             <span>•</span>
-            <span className="hover:text-[#FAF5F0] cursor-pointer">Local Store Standards</span>
+            <span className="hover:text-[#FAF5F0]">Local Store Standards</span>
           </div>
         </div>
       </div>
