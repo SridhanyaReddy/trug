@@ -133,20 +133,23 @@ export default function Header({ onOpenCart, onOpenAuth }: HeaderProps) {
 
             {/* Zepto-Style Login / Account Button */}
             {isLoggedIn ? (
-              <div className="flex items-center gap-2 bg-[#F1E6DC]/80 px-3.5 py-2 rounded-full border border-[#6B5145]/15 text-xs font-bold text-[#302B28]">
-                <div className="w-5 h-5 rounded-full bg-[#302B28] text-white flex items-center justify-center text-[10px]">
+              <Link
+                href="/profile"
+                className="flex items-center gap-2 bg-[#F1E6DC]/90 hover:bg-[#F1E6DC] px-3.5 py-2 rounded-full border border-[#6B5145]/15 text-xs font-bold text-[#302B28] transition shadow-2xs"
+              >
+                <div className="w-5 h-5 rounded-full bg-[#D97A5B] text-white flex items-center justify-center text-[10px] font-black">
                   {user.name.slice(0, 1).toUpperCase()}
                 </div>
-                <span className="hidden lg:inline">{user.name.split(' ')[0]}</span>
-              </div>
+                <span>Profile</span>
+              </Link>
             ) : (
-              <button
-                onClick={onOpenAuth}
-                className="hidden sm:flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold tracking-wide border border-[#6B5145]/30 text-[#302B28] hover:bg-[#F1E6DC] transition"
+              <Link
+                href="/login"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold tracking-wide border border-[#D97A5B] text-[#D97A5B] hover:bg-[#D97A5B] hover:text-white transition shadow-2xs"
               >
-                <UserIcon className="w-3.5 h-3.5 text-[#D97A5B]" />
+                <UserIcon className="w-3.5 h-3.5" />
                 <span>Login</span>
-              </button>
+              </Link>
             )}
 
             {/* Zepto-Style Cart CTA Button */}
