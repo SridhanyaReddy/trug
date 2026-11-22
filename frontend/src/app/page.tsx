@@ -47,7 +47,7 @@ export default function HomePage() {
             <div className="lg:col-span-7 space-y-6">
               <div className="inline-flex items-center gap-2 bg-[#F1E6DC] px-4 py-2 rounded-full text-xs font-bold text-[#6B5145] shadow-xs">
                 <Sparkles className="w-4 h-4 text-[#D97A5B]" />
-                <span>Live Supabase Catalogue Connected • {currentLocality}</span>
+                <span>Live TRUG Catalogue Connected • {currentLocality}</span>
               </div>
 
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.08] text-[#302B28]">
@@ -130,12 +130,12 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 2. Live Categories from home_partner_types */}
+      {/* 2. Live Categories from trug.catalogue_categories */}
       <section className="py-14 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between mb-8">
           <div>
             <h2 className="text-2xl sm:text-3xl font-black text-[#302B28]">Categories from Database</h2>
-            <p className="text-xs sm:text-sm text-[#6B5145] mt-1">Direct from `home_partner_types` table.</p>
+            <p className="text-xs sm:text-sm text-[#6B5145] mt-1">Direct from `trug.catalogue_categories` table.</p>
           </div>
           <Link
             href="/shops"
@@ -150,54 +150,53 @@ export default function HomePage() {
           {categories.map((cat: any) => (
             <Link
               key={cat.id}
-              href={`/shops?category=${encodeURIComponent(cat.category || cat.title)}`}
+              href={`/shops?category=${encodeURIComponent(cat.category_key || cat.name || cat.title)}`}
               className="group bg-white rounded-2xl p-4 border border-[#F1E6DC] shadow-xs hover:shadow-md transition-all flex flex-col justify-between hover:border-[#D97A5B]/40"
             >
               <div className="relative w-full aspect-square rounded-xl overflow-hidden mb-3 bg-[#FAF5F0]">
                 {cat.image_url ? (
                   <Image
                     src={cat.image_url}
-                    alt={cat.title}
+                    alt={cat.name || cat.title}
                     fill
                     className="object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                 ) : (
                   <div
-                    className="w-full h-full flex items-center justify-center font-bold text-white text-lg"
-                    style={{ backgroundColor: cat.accent_hex || '#D97A5B' }}
+                    className="w-full h-full flex items-center justify-center font-bold text-white text-lg bg-[#D97A5B]"
                   >
-                    {cat.title.slice(0, 2)}
+                    {(cat.name || cat.title || 'TR').slice(0, 2)}
                   </div>
                 )}
-                {cat.tag && (
-                  <span className="absolute top-2 left-2 bg-[#302B28] text-white text-[9px] font-bold px-2 py-0.5 rounded-full shadow-xs">
-                    {cat.tag}
+                {cat.category_key && (
+                  <span className="absolute top-2 left-2 bg-[#302B28] text-white text-[9px] font-bold px-2 py-0.5 rounded-full shadow-xs uppercase">
+                    {cat.category_key}
                   </span>
                 )}
               </div>
               <div>
                 <h3 className="font-extrabold text-sm text-[#302B28] group-hover:text-[#D97A5B] transition-colors">
-                  {cat.title}
+                  {cat.name || cat.title}
                 </h3>
-                <p className="text-[11px] text-[#6B5145] line-clamp-2 mt-0.5">{cat.description}</p>
+                <p className="text-[11px] text-[#6B5145] line-clamp-2 mt-0.5">Fresh neighbourhood stock</p>
               </div>
             </Link>
           ))}
         </div>
       </section>
 
-      {/* 3. Live Verified Merchants from partner_profiles */}
+      {/* 3. Live Verified Merchants from trug.locations */}
       <section className="py-14 bg-[#F1E6DC]/40 border-y border-[#F1E6DC]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between mb-8">
             <div>
               <div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#D97A5B] uppercase tracking-wider mb-1">
                 <Store className="w-3.5 h-3.5" />
-                <span>Live Partner Profiles</span>
+                <span>Live Stores & Outlets</span>
               </div>
-              <h2 className="text-2xl sm:text-3xl font-black text-[#302B28]">Neighbourhood Merchants</h2>
+              <h2 className="text-2xl sm:text-3xl font-black text-[#302B28]">Neighbourhood Stores</h2>
               <p className="text-xs sm:text-sm text-[#6B5145] mt-1">
-                Discovered in {currentLocality} from `partner_profiles`.
+                Active in Hyderabad ({currentLocality}) from `trug.locations` & `trug.vendors`.
               </p>
             </div>
             <Link
@@ -217,16 +216,16 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 4. Live Catalogue from unified_packages */}
+      {/* 4. Live Catalogue from trug.location_skus */}
       <section className="py-14 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between mb-8">
           <div>
             <div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#D97A5B] uppercase tracking-wider mb-1">
               <ShoppingBag className="w-3.5 h-3.5" />
-              <span>Unified Packages Table</span>
+              <span>Real-Time Inventory</span>
             </div>
             <h2 className="text-2xl sm:text-3xl font-black text-[#302B28]">Popular Catalogue Items</h2>
-            <p className="text-xs sm:text-sm text-[#6B5145] mt-1">Live from `unified_packages`.</p>
+            <p className="text-xs sm:text-sm text-[#6B5145] mt-1">Live from `trug.location_skus`.</p>
           </div>
           <Link
             href="/shops"

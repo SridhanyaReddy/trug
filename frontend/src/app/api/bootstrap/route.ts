@@ -3,36 +3,41 @@ import {
   getLiveCategories,
   getLiveVendors,
   getLiveProducts,
-  getLiveHeaderVideos,
-  getLiveTestimonials,
+  getLiveDeliverySlots,
+  getLiveTrugOrders,
+  getLiveAddressSuggestions,
 } from '@/services/liveDatabase';
 
 export async function GET() {
-  const [categories, vendors, products, headerVideos, testimonials] = await Promise.all([
-    getLiveCategories(),
-    getLiveVendors(),
-    getLiveProducts(),
-    getLiveHeaderVideos(),
-    getLiveTestimonials(),
-  ]);
+  try {
+    const [categories, vendors, products, deliverySlots, orders, addressSuggestions] = await Promise.all([
+      getLiveCategories(),
+      getLiveVendors(),
+      getLiveProducts(),
+      getLiveDeliverySlots(),
+      getLiveTrugOrders(),
+      getLiveAddressSuggestions(),
+    ]);
 
-  return NextResponse.json({
-    success: true,
-    source: 'live_supabase_focsera',
-    counts: {
-      categories: categories.length,
-      vendors: vendors.length,
-      products: products.length,
-      videos: headerVideos.length,
-      testimonials: testimonials.length,
-    },
-    data: {
-      categories,
-      vendors,
-      products,
-      headerVideos,
-      testimonials,
-    },
-  });
+    return NextResponse.json({
+      success: true,
+      data: {
+        categories,
+        vendors,
+        products,
+        deliverySlots,
+        orders,
+        addressSuggestions,
+      },
+    });
+  } catch (err: any) {
+    console.error('Error bootstrapping live TRUG database:', err);
+    return NextResponse.json(
+      {
+        success: false,
+        error: err.message,
+      },
+      { status: 500 }
+    );
+  }
 }
-
