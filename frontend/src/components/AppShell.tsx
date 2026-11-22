@@ -1,26 +1,17 @@
 'use client';
 
 import React, { Suspense } from 'react';
-import { usePathname } from 'next/navigation';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import UniversalPortalSwitcher from '@/components/UniversalPortalSwitcher';
 
 function AppShellInner({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-
-  const isVendor = pathname.startsWith('/vendor');
-  const isAdmin = pathname.startsWith('/admin');
-  const isCustomer = !isVendor && !isAdmin;
-
   return (
     <>
-      {isCustomer && <Header />}
+      <Header />
       <main className="flex-1">
         {children}
       </main>
-      {isCustomer && <Footer />}
-      <UniversalPortalSwitcher />
+      <Footer />
     </>
   );
 }
