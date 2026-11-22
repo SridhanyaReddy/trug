@@ -124,3 +124,4 @@ export interface SupportTicketRecord {
   priority: 'low' | 'medium' | 'high';
   created_at: string;
 }
+

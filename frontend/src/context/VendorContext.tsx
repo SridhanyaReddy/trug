@@ -10,15 +10,6 @@ import {
   InventoryLog,
 } from '@/types/vendor';
 import { Order, OrderStatus, RecurringOrder } from '@/types';
-import {
-  INITIAL_VENDOR_PROFILE,
-  INITIAL_VENDOR_PRODUCTS,
-  INITIAL_INVENTORY_LOGS,
-  INITIAL_DELIVERY_SLOTS,
-  INITIAL_VENDOR_CUSTOMERS,
-  INITIAL_STAFF_MEMBERS,
-} from '@/data/vendorMockData';
-import { MOCK_ORDERS, MOCK_RECURRING_ORDERS } from '@/data/mockData';
 
 interface VendorContextType {
   // Auth
@@ -31,7 +22,7 @@ interface VendorContextType {
   updateVendorProfile: (updated: Partial<VendorBusinessProfile>) => void;
   toggleStoreStatus: () => void;
 
-  // Products (Workflow A: Added/updated products persist to localStorage and sync to customer storefront)
+  // Products
   products: VendorManagedProduct[];
   addProduct: (product: Omit<VendorManagedProduct, 'id' | 'slug' | 'vendorId' | 'vendorName' | 'vendorSlug' | 'totalSold' | 'lastUpdated'>) => void;
   updateProduct: (id: string, updated: Partial<VendorManagedProduct>) => void;
@@ -42,7 +33,7 @@ interface VendorContextType {
   inventoryLogs: InventoryLog[];
   updateVariantStock: (productId: string, variantId: string, newStock: number, reason: InventoryLog['reason']) => void;
 
-  // Orders (Workflow B: Syncs with customer orders placed in checkout)
+  // Orders
   vendorOrders: Order[];
   updateOrderStatus: (orderId: string, newStatus: OrderStatus) => void;
   refreshVendorOrders: () => void;
@@ -75,333 +66,199 @@ const VendorContext = createContext<VendorContextType | null>(null);
 
 export function VendorProvider({ children }: { children: React.ReactNode }) {
   const [isVendorLoggedIn, setIsVendorLoggedIn] = useState<boolean>(true);
-  const [vendorProfile, setVendorProfile] = useState<VendorBusinessProfile>(INITIAL_VENDOR_PROFILE);
-  const [products, setProducts] = useState<VendorManagedProduct[]>(INITIAL_VENDOR_PRODUCTS);
-  const [inventoryLogs, setInventoryLogs] = useState<InventoryLog[]>(INITIAL_INVENTORY_LOGS);
+  const [vendorProfile, setVendorProfile] = useState<VendorBusinessProfile>({
+    id: 'af6d0f93-b67c-4d4d-8207-d69da0236331',
+    businessName: 'Kiran Bose & Team',
+    legalEntityName: 'Kiran Bose & Team Pvt Ltd',
+    slug: 'kiran-bose-team',
+    category: 'Reel Maker',
+    ownerName: 'Kiran Bose',
+    email: 'kiran.portfolioreel@focsera.com',
+    phone: '+91 98400 40008',
+    gstNumber: '29ABCDE1234F1Z5',
+    fssaiNumber: '21223190000412',
+    address: {
+      line1: 'Studio 4B, Creators Hub',
+      locality: 'Bengaluru Core',
+      city: 'Bengaluru',
+      pincode: '560038',
+    },
+    timings: '6:00 AM - 9:00 PM',
+    isOpen: true,
+    verificationStatus: 'Verified',
+    documents: {
+      fssaiDoc: 'FSSAI_Certificate.pdf',
+      gstDoc: 'GSTIN_Registration.pdf',
+      storefrontPhoto: 'https://unpbalwhranarpggvckh.supabase.co/storage/v1/object/public/mobile-catalog/v1/b4d52908c4e6ba40aeee012f1a2895cba23b27c692373e540d797ca7ce824981-960.webp',
+    },
+    deliveryRadiusKm: 5,
+    minOrderValue: 80,
+    deliveryFee: 0,
+    currentPlan: 'Growth Champion',
+    planExpiry: '2027-01-01',
+  });
+
+  const [products, setProducts] = useState<VendorManagedProduct[]>([]);
+  const [inventoryLogs, setInventoryLogs] = useState<InventoryLog[]>([]);
   const [vendorOrders, setVendorOrders] = useState<Order[]>([]);
   const [recurringSubscriptions, setRecurringSubscriptions] = useState<RecurringOrder[]>([]);
-  const [deliverySlots, setDeliverySlots] = useState<DeliverySlotConfig[]>(INITIAL_DELIVERY_SLOTS);
-  const [customers, setCustomers] = useState<VendorCustomer[]>(INITIAL_VENDOR_CUSTOMERS);
-  const [staffMembers, setStaffMembers] = useState<StaffMember[]>(INITIAL_STAFF_MEMBERS);
+  const [deliverySlots, setDeliverySlots] = useState<DeliverySlotConfig[]>([
+    { id: 'slot-1', title: 'Morning Window', startTime: '06:30', endTime: '08:30', maxOrdersCapacity: 30, currentBookings: 8, cutOffTime: '22:00 previous day', isEnabled: true, type: 'delivery' },
+    { id: 'slot-2', title: 'Evening Window', startTime: '17:00', endTime: '19:30', maxOrdersCapacity: 40, currentBookings: 14, cutOffTime: '15:00 same day', isEnabled: true, type: 'delivery' },
+  ]);
+  const [customers, setCustomers] = useState<VendorCustomer[]>([]);
+  const [staffMembers, setStaffMembers] = useState<StaffMember[]>([
+    { id: 'st-1', name: 'Kiran Bose', role: 'Store Manager', phone: '+91 98400 40008', status: 'Active', joinedDate: '2025-01-10' },
+  ]);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const showToast = useCallback((msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage((prev) => (prev === msg ? null : prev));
+    }, 3500);
+  }, []);
+
+  // Fetch live products for vendor from Supabase
+  const fetchVendorLiveProducts = useCallback(async () => {
+    try {
+      const res = await fetch('/api/admin-bootstrap');
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.data && json.data.products) {
+          setProducts(json.data.products);
+        }
+      }
+    } catch (e) {
+      console.error('Failed to load vendor products:', e);
+    }
+  }, []);
 
   const syncVendorOrders = useCallback(() => {
     try {
       const customerOrdersRaw = localStorage.getItem('trug_orders');
-      const allOrders: Order[] = customerOrdersRaw ? JSON.parse(customerOrdersRaw) : MOCK_ORDERS;
-      // Filter for this store or show all if demo
-      const relevant = allOrders.filter(
-        (o) => o.vendorId === 'v-krishna-dairy' || o.vendorSlug === 'krishna-dairy-farm'
-      );
-      setVendorOrders(relevant.length > 0 ? relevant : allOrders);
-    } catch {
-      // ignore
-    }
+      if (customerOrdersRaw) {
+        setVendorOrders(JSON.parse(customerOrdersRaw));
+      }
+    } catch {}
   }, []);
 
-  // Initialize from LocalStorage
   useEffect(() => {
-    try {
-      const savedAuth = localStorage.getItem('trug_vendor_auth');
-      if (savedAuth !== null) setIsVendorLoggedIn(JSON.parse(savedAuth));
+    fetchVendorLiveProducts();
+    syncVendorOrders();
+  }, [fetchVendorLiveProducts, syncVendorOrders]);
 
-      const savedProfile = localStorage.getItem('trug_vendor_profile');
-      if (savedProfile) setVendorProfile(JSON.parse(savedProfile));
-
-      const savedProducts = localStorage.getItem('trug_vendor_products');
-      if (savedProducts) setProducts(JSON.parse(savedProducts));
-
-      const savedSlots = localStorage.getItem('trug_vendor_slots');
-      if (savedSlots) setDeliverySlots(JSON.parse(savedSlots));
-
-      syncVendorOrders();
-
-      const customerSubsRaw = localStorage.getItem('trug_recurring_orders');
-      const allSubs: RecurringOrder[] = customerSubsRaw ? JSON.parse(customerSubsRaw) : MOCK_RECURRING_ORDERS;
-      setRecurringSubscriptions(allSubs.filter((s) => s.vendorId === 'v-krishna-dairy'));
-    } catch {
-      // ignore
-    }
-
-    const handleStorage = (e: StorageEvent) => {
-      if (e.key === 'trug_orders') syncVendorOrders();
-    };
-    window.addEventListener('storage', handleStorage);
-    return () => window.removeEventListener('storage', handleStorage);
-  }, [syncVendorOrders]);
-
-  // Persist Products to LocalStorage
-  useEffect(() => {
-    try {
-      localStorage.setItem('trug_vendor_products', JSON.stringify(products));
-    } catch {
-      // ignore
-    }
-  }, [products]);
-
-  // Persist Profile & Slots
-  useEffect(() => {
-    try {
-      localStorage.setItem('trug_vendor_profile', JSON.stringify(vendorProfile));
-    } catch {
-      // ignore
-    }
-  }, [vendorProfile]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('trug_vendor_slots', JSON.stringify(deliverySlots));
-    } catch {
-      // ignore
-    }
-  }, [deliverySlots]);
-
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => {
-      setToastMessage((prev) => (prev === msg ? null : prev));
-    }, 3200);
-  };
-
-  const loginVendor = (id: string) => {
+  const loginVendor = useCallback((emailOrPhone: string) => {
     setIsVendorLoggedIn(true);
-    showToast(`Signed in to ${vendorProfile.businessName}`);
-  };
+    showToast('Merchant logged in');
+  }, [showToast]);
 
-  const logoutVendor = () => {
+  const logoutVendor = useCallback(() => {
     setIsVendorLoggedIn(false);
-    showToast('Signed out of Vendor Portal');
-  };
+    showToast('Signed out from Merchant Dashboard');
+  }, [showToast]);
 
-  const updateVendorProfile = (updated: Partial<VendorBusinessProfile>) => {
+  const updateVendorProfile = useCallback((updated: Partial<VendorBusinessProfile>) => {
     setVendorProfile((prev) => ({ ...prev, ...updated }));
-    showToast('Store settings updated');
-  };
+    showToast('Profile updated');
+  }, [showToast]);
 
-  const toggleStoreStatus = () => {
+  const toggleStoreStatus = useCallback(() => {
     setVendorProfile((prev) => {
-      const nextOpen = !prev.isOpen;
-      showToast(`Store is now ${nextOpen ? 'OPEN for online orders' : 'TEMPORARILY CLOSED'}`);
-      return { ...prev, isOpen: nextOpen };
+      const next = !prev.isOpen;
+      showToast(next ? 'Store is now Open for orders' : 'Store is paused');
+      return { ...prev, isOpen: next };
     });
-  };
+  }, [showToast]);
 
-  // Workflow A: Creating a product saves to localStorage for immediate customer visibility
-  const addProduct = (p: Omit<VendorManagedProduct, 'id' | 'slug' | 'vendorId' | 'vendorName' | 'vendorSlug' | 'totalSold' | 'lastUpdated'>) => {
-    const slug = p.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-    const newProduct: VendorManagedProduct = {
-      ...p,
+  const addProduct = useCallback((newP: any) => {
+    const created: VendorManagedProduct = {
+      ...newP,
       id: `prod-${Date.now()}`,
-      slug,
+      slug: newP.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
       vendorId: vendorProfile.id,
       vendorName: vendorProfile.businessName,
       vendorSlug: vendorProfile.slug,
       totalSold: 0,
-      lastUpdated: 'Just now',
+      lastUpdated: new Date().toISOString(),
     };
+    setProducts((prev) => [created, ...prev]);
+    showToast(`Product ${newP.name} added to live catalogue`);
+  }, [vendorProfile, showToast]);
 
-    setProducts((prev) => {
-      const next = [newProduct, ...prev];
-      try {
-        localStorage.setItem('trug_vendor_products', JSON.stringify(next));
-      } catch {
-        // ignore
-      }
-      return next;
-    });
+  const updateProduct = useCallback((id: string, updated: any) => {
+    setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, ...updated, lastUpdated: new Date().toISOString() } : p)));
+    showToast('Product updated');
+  }, [showToast]);
 
-    showToast(`Added "${newProduct.name}" to store catalogue!`);
-  };
+  const deleteProduct = useCallback((id: string) => {
+    setProducts((prev) => prev.filter((p) => p.id !== id));
+    showToast('Product removed');
+  }, [showToast]);
 
-  const updateProduct = (id: string, updated: Partial<VendorManagedProduct>) => {
-    setProducts((prev) => {
-      const next = prev.map((p) => (p.id === id ? { ...p, ...updated, lastUpdated: 'Just now' } : p));
-      try {
-        localStorage.setItem('trug_vendor_products', JSON.stringify(next));
-      } catch {
-        // ignore
-      }
-      return next;
-    });
-    showToast('Product updated successfully');
-  };
+  const setProductStatus = useCallback((id: string, status: any) => {
+    setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, status } : p)));
+    showToast(`Product marked as ${status}`);
+  }, [showToast]);
 
-  const deleteProduct = (id: string) => {
-    setProducts((prev) => {
-      const next = prev.filter((p) => p.id !== id);
-      try {
-        localStorage.setItem('trug_vendor_products', JSON.stringify(next));
-      } catch {
-        // ignore
-      }
-      return next;
-    });
-    showToast('Product removed from store');
-  };
-
-  const setProductStatus = (id: string, status: VendorManagedProduct['status']) => {
-    setProducts((prev) => {
-      const next = prev.map((p) => (p.id === id ? { ...p, status, lastUpdated: 'Just now' } : p));
-      try {
-        localStorage.setItem('trug_vendor_products', JSON.stringify(next));
-      } catch {
-        // ignore
-      }
-      return next;
-    });
-    showToast(`Product set to ${status.toUpperCase()}`);
-  };
-
-  const updateVariantStock = (productId: string, variantId: string, newStock: number, reason: InventoryLog['reason']) => {
-    let changedProductName = '';
-    let changedVariantName = '';
-    let oldStock = 0;
-
-    setProducts((prev) => {
-      const next = prev.map((p) => {
-        if (p.id !== productId) return p;
-        changedProductName = p.name;
-        return {
-          ...p,
-          variants: p.variants.map((v) => {
-            if (v.id !== variantId) return v;
-            changedVariantName = v.name;
-            oldStock = v.stockQty;
-            return {
-              ...v,
-              stockQty: newStock,
-              inStock: newStock > 0,
-            };
-          }),
-        };
-      });
-      try {
-        localStorage.setItem('trug_vendor_products', JSON.stringify(next));
-      } catch {
-        // ignore
-      }
-      return next;
-    });
-
-    const log: InventoryLog = {
-      id: `log-${Date.now()}`,
-      productId,
-      productName: changedProductName || 'Product',
-      variantName: changedVariantName || 'Variant',
-      change: newStock - oldStock,
-      reason,
-      timestamp: 'Just now',
-      newStock,
-    };
-
-    setInventoryLogs((prev) => [log, ...prev]);
-    showToast(`Updated stock to ${newStock} units`);
-  };
-
-  // Workflow B: Updating order status updates both vendor state and global customer storage
-  const updateOrderStatus = (orderId: string, newStatus: OrderStatus) => {
-    setVendorOrders((prev) =>
-      prev.map((order) => {
-        if (order.id !== orderId) return order;
-        const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        const updatedTimeline = order.timeline.map((step) => {
-          if (step.status === newStatus) {
-            return { ...step, completed: true, current: true, timestamp: now };
-          }
-          if (step.current) {
-            return { ...step, current: false };
-          }
-          return step;
-        });
-
-        return {
-          ...order,
-          status: newStatus,
-          timeline: updatedTimeline,
-        };
-      })
+  const updateVariantStock = useCallback((productId: string, variantId: string, newStock: number, reason: any) => {
+    setProducts((prev) =>
+      prev.map((p) =>
+        p.id === productId
+          ? {
+              ...p,
+              variants: p.variants.map((v) => (v.id === variantId ? { ...v, stockQty: newStock } : v)),
+            }
+          : p
+      )
     );
+    showToast(`Stock updated to ${newStock}`);
+  }, [showToast]);
 
-    // Sync to global customer storage so tracking screen reflects the update
-    try {
-      const customerOrdersRaw = localStorage.getItem('trug_orders');
-      if (customerOrdersRaw) {
-        const all: Order[] = JSON.parse(customerOrdersRaw);
-        const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        const nextAll = all.map((o) => {
-          if (o.id !== orderId) return o;
-          const updatedTimeline = o.timeline.map((step) => {
-            if (step.status === newStatus) {
-              return { ...step, completed: true, current: true, timestamp: now };
-            }
-            if (step.current) {
-              return { ...step, current: false };
-            }
-            return step;
-          });
-          return { ...o, status: newStatus, timeline: updatedTimeline };
-        });
-        localStorage.setItem('trug_orders', JSON.stringify(nextAll));
-      }
-    } catch {
-      // ignore
-    }
-
+  const updateOrderStatus = useCallback((orderId: string, newStatus: OrderStatus) => {
+    setVendorOrders((prev) => {
+      const next = prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o));
+      try {
+        localStorage.setItem('trug_orders', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
     showToast(`Order marked as ${newStatus}`);
-  };
+  }, [showToast]);
 
-  const toggleSubscriptionStatus = (subId: string, newStatus: 'active' | 'paused' | 'cancelled') => {
-    setRecurringSubscriptions((prev) =>
-      prev.map((s) => (s.id === subId ? { ...s, status: newStatus } : s))
-    );
-    showToast(`Subscription status changed to ${newStatus}`);
-  };
+  const toggleSubscriptionStatus = useCallback((subId: string, newStatus: any) => {
+    setRecurringSubscriptions((prev) => prev.map((s) => (s.id === subId ? { ...s, status: newStatus } : s)));
+  }, []);
 
-  const addDeliverySlot = (slot: Omit<DeliverySlotConfig, 'id' | 'currentBookings'>) => {
-    const newSlot: DeliverySlotConfig = {
-      ...slot,
-      id: `slot-${Date.now()}`,
-      currentBookings: 0,
-    };
-    setDeliverySlots((prev) => [...prev, newSlot]);
-    showToast(`Slot "${slot.title}" created!`);
-  };
+  const addDeliverySlot = useCallback((slot: any) => {
+    setDeliverySlots((prev) => [...prev, { ...slot, id: `slot-${Date.now()}`, currentBookings: 0 }]);
+  }, []);
 
-  const updateDeliverySlot = (id: string, updated: Partial<DeliverySlotConfig>) => {
-    setDeliverySlots((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, ...updated } : s))
-    );
-    showToast('Delivery slot modified');
-  };
+  const updateDeliverySlot = useCallback((id: string, updated: any) => {
+    setDeliverySlots((prev) => prev.map((s) => (s.id === id ? { ...s, ...updated } : s)));
+  }, []);
 
-  const toggleSlotEnabled = (id: string) => {
-    setDeliverySlots((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, isEnabled: !s.isEnabled } : s))
-    );
-    showToast('Slot status toggled');
-  };
+  const toggleSlotEnabled = useCallback((id: string) => {
+    setDeliverySlots((prev) => prev.map((s) => (s.id === id ? { ...s, isEnabled: !s.isEnabled } : s)));
+  }, []);
 
-  const addCustomerNote = (customerId: string, note: string) => {
+  const addCustomerNote = useCallback((customerId: string, note: string) => {
     setCustomers((prev) =>
-      prev.map((c) => (c.id === customerId ? { ...c, notes: note } : c))
+      prev.map((c) =>
+        c.id === customerId
+          ? { ...c, notes: c.notes ? `${c.notes}\n${note}` : note }
+          : c
+      )
     );
-    showToast('Customer notes saved');
-  };
+  }, []);
 
-  const addStaffMember = (staff: Omit<StaffMember, 'id' | 'joinedDate'>) => {
-    const newStaff: StaffMember = {
-      ...staff,
-      id: `staff-${Date.now()}`,
-      joinedDate: 'Nov 2026',
-    };
-    setStaffMembers((prev) => [...prev, newStaff]);
-    showToast(`Added staff member ${staff.name}`);
-  };
+  const addStaffMember = useCallback((staff: any) => {
+    setStaffMembers((prev) => [...prev, { ...staff, id: `st-${Date.now()}` }]);
+  }, []);
 
-  const removeStaffMember = (id: string) => {
+  const removeStaffMember = useCallback((id: string) => {
     setStaffMembers((prev) => prev.filter((s) => s.id !== id));
-    showToast('Staff member removed');
-  };
+  }, []);
 
   return (
     <VendorContext.Provider
@@ -438,21 +295,12 @@ export function VendorProvider({ children }: { children: React.ReactNode }) {
       }}
     >
       {children}
-      {/* Global Vendor Toast Notification */}
-      {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-[#302B28] text-[#FAF5F0] px-4 py-3 rounded-2xl shadow-2xl border border-[#D97A5B]/30 animate-in fade-in slide-in-from-bottom-3 duration-200 text-xs font-semibold">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#D97A5B] animate-pulse" />
-          <span>{toastMessage}</span>
-        </div>
-      )}
     </VendorContext.Provider>
   );
 }
 
 export function useVendor() {
   const context = useContext(VendorContext);
-  if (!context) {
-    throw new Error('useVendor must be used within a VendorProvider');
-  }
+  if (!context) throw new Error('useVendor must be used within a VendorProvider');
   return context;
 }

@@ -29,3 +29,4 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 3. Click **Deploy** (no database or environment variables required).
 
 *(Optional: Add `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` in Vercel settings whenever you want to connect live Supabase).*
+

@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { fetchLiveDatabaseVendors } from '@/services/liveDatabase';
+import { getLiveVendors } from '@/services/liveDatabase';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const locality = searchParams.get('locality');
   const category = searchParams.get('category');
 
-  let vendors = await fetchLiveDatabaseVendors();
+  let vendors = await getLiveVendors();
 
   if (locality && locality !== 'All Areas') {
     vendors = vendors.filter((v) =>
@@ -23,6 +23,6 @@ export async function GET(request: NextRequest) {
     success: true,
     source: 'live_database_partner_profiles',
     count: vendors.length,
-    data: vendors
+    data: vendors,
   });
 }
