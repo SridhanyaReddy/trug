@@ -84,14 +84,13 @@ interface SharedAppContextType {
 const CartContext = createContext<SharedAppContextType | null>(null);
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
-  const [currentLocality, setCurrentLocality] = useState<string>('Bengaluru Core');
+  const [currentLocality, setCurrentLocality] = useState<string>('Jubilee Hills, Hyderabad');
   const [availableLocalities, setAvailableLocalities] = useState<string[]>([
-    'Bengaluru Core',
-    'Green Glen Layout, Bellandur',
-    'Indiranagar 12th Main',
-    'Koramangala 4th Block',
-    'HSR Layout Sector 2',
-    'Whitefield Inner Circle',
+    'Jubilee Hills, Hyderabad',
+    'Road No. 36, Jubilee Hills',
+    'Banjara Hills Road No. 12',
+    'Road No. 10, Banjara Hills',
+    'Madhapur Metro Corridor',
   ]);
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -106,16 +105,16 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<CustomerProfile>({
     id: 'usr-default',
     name: 'Customer Account',
-    phone: '+91 98450 12345',
-    email: 'resident@trug.focsera.com',
+    phone: '+91 93924 49721',
+    email: 'customer@trug.in',
     addresses: [
       {
         id: 'addr-1',
         tag: 'Home',
         name: 'Primary Address',
-        phone: '+91 98450 12345',
-        addressLine: 'Flat 402, Green Meadows',
-        locality: 'Bengaluru Core',
+        phone: '+91 93924 49721',
+        addressLine: 'Road No. 36, Jubilee Hills',
+        locality: 'Jubilee Hills, Hyderabad',
         isDefault: true,
       },
     ],
@@ -150,6 +149,47 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           if (json.data.categories && json.data.categories.length > 0) {
             setCategories(json.data.categories);
           }
+          if (json.data.orders && json.data.orders.length > 0) {
+            const mappedOrders: Order[] = json.data.orders.map((o: any) => ({
+              id: o.id,
+              orderNumber: `TRUG-${o.order_number || o.id.slice(0, 5)}`,
+              vendorId: o.location_id || '49bfb3cc-5013-4945-9000-020000000001',
+              vendorName: o.store_name || 'Orchard Market',
+              vendorSlug: o.store_slug || 'trug-sample-orchard-market',
+              items: (o.items || []).map((it: any, idx: number) => ({
+                id: `it-${idx}`,
+                productId: `prod-${idx}`,
+                productSlug: (it.sku_name || 'item').toLowerCase().replace(/\s+/g, '-'),
+                productName: it.sku_name || 'Item',
+                productImage: 'https://pub-cdf20c31647144a1bc202a2fe4d80867.r2.dev/v1/tomato-d498d2156b91.jpg',
+                variantId: `var-${idx}`,
+                variantName: `${it.pack_size || 1} ${it.unit || 'unit'}`,
+                price: (it.unit_price_paise || 0) / 100,
+                quantity: it.packs || 1,
+                totalPrice: (it.line_total_paise || 0) / 100,
+              })),
+              subtotal: (o.subtotal_paise || 0) / 100,
+              deliveryFee: (o.delivery_fee_paise || 0) / 100,
+              total: (o.total_paise || 0) / 100,
+              status: o.status === 'delivered' ? 'Delivered' : o.status === 'cancelled' ? 'Cancelled' : 'Placed',
+              createdAt: o.created_at,
+              deliverySlot: 'Morning Delivery',
+              deliveryAddress: {
+                id: 'addr-1',
+                tag: 'Home' as const,
+                name: o.recipient || 'Customer',
+                phone: o.recipient_phone || '+91 93924 49721',
+                addressLine: o.address_line || 'Jubilee Hills',
+                locality: 'Hyderabad',
+                pincode: o.postcode || '500033',
+                isDefault: true,
+              },
+              timeline: [
+                { status: 'Placed' as const, timestamp: o.created_at, note: 'Order captured in TRUG database' },
+              ],
+            }));
+            setOrders(mappedOrders);
+          }
         }
       }
     } catch (e) {
@@ -166,11 +206,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       const savedCart = localStorage.getItem('trug_cart');
       if (savedCart) setCartItems(JSON.parse(savedCart));
 
-      const savedOrders = localStorage.getItem('trug_orders');
-      if (savedOrders) setOrders(JSON.parse(savedOrders));
-
       const savedLocality = localStorage.getItem('trug_locality');
-      if (savedLocality) setCurrentLocality(savedLocality);
+      if (savedLocality && savedLocality !== 'Bengaluru Core') setCurrentLocality(savedLocality);
     } catch {
       // ignore
     }
