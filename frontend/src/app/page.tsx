@@ -56,8 +56,8 @@ export default function HomePage() {
               </h1>
 
               <p className="text-base sm:text-lg text-[#6B5145] max-w-xl font-normal leading-relaxed">
-                Connect with verified local merchants, service providers, and stores right in your locality.
-                Instant delivery, verified ratings, and direct neighbourhood checkout.
+                Connect with verified local stores, grocers, and bakers right in your locality.
+                Instant delivery, fresh inventory, and direct neighbourhood checkout.
               </p>
 
               {/* Action Buttons */}
@@ -67,7 +67,7 @@ export default function HomePage() {
                   className="bg-[#D97A5B] hover:bg-[#c4694d] text-white px-7 py-3.5 rounded-full text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-2 group"
                 >
                   <Store className="w-4 h-4" />
-                  <span>Browse {vendors.length > 0 ? `${vendors.length} Live Merchants` : 'Shops'}</span>
+                  <span>Browse {vendors.length > 0 ? `${vendors.length} Live Stores` : 'Stores'}</span>
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Link>
 
@@ -76,19 +76,19 @@ export default function HomePage() {
                   className="bg-[#FAF5F0] hover:bg-[#F1E6DC] text-[#302B28] border border-[#6B5145]/20 px-6 py-3.5 rounded-full text-sm font-bold transition flex items-center gap-2"
                 >
                   <ShoppingBag className="w-4 h-4 text-[#D97A5B]" />
-                  <span>Explore Catalogue ({products.length} Items)</span>
+                  <span>Explore Catalogue ({products.length} Products)</span>
                 </Link>
               </div>
 
               {/* Live Metric Badges */}
               <div className="pt-6 grid grid-cols-3 gap-4 border-t border-[#F1E6DC] max-w-lg">
                 <div>
-                  <div className="text-2xl font-black text-[#302B28]">{vendors.length || '25+'}</div>
-                  <div className="text-xs text-[#6B5145] font-medium">Verified Partners</div>
+                  <div className="text-2xl font-black text-[#302B28]">{vendors.length || '2'}</div>
+                  <div className="text-xs text-[#6B5145] font-medium">Verified Stores</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-black text-[#D97A5B]">{products.length || '10+'}</div>
-                  <div className="text-xs text-[#6B5145] font-medium">Live Services/Packages</div>
+                  <div className="text-2xl font-black text-[#D97A5B]">{products.length || '8'}</div>
+                  <div className="text-xs text-[#6B5145] font-medium">Live Products</div>
                 </div>
                 <div>
                   <div className="text-2xl font-black text-[#302B28]">100%</div>
