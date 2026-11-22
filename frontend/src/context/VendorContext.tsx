@@ -67,48 +67,45 @@ const VendorContext = createContext<VendorContextType | null>(null);
 export function VendorProvider({ children }: { children: React.ReactNode }) {
   const [isVendorLoggedIn, setIsVendorLoggedIn] = useState<boolean>(true);
   const [vendorProfile, setVendorProfile] = useState<VendorBusinessProfile>({
-    id: 'af6d0f93-b67c-4d4d-8207-d69da0236331',
-    businessName: 'Kiran Bose & Team',
-    legalEntityName: 'Kiran Bose & Team Pvt Ltd',
-    slug: 'kiran-bose-team',
-    category: 'Reel Maker',
-    ownerName: 'Kiran Bose',
-    email: 'kiran.portfolioreel@focsera.com',
-    phone: '+91 98400 40008',
-    gstNumber: '29ABCDE1234F1Z5',
-    fssaiNumber: '21223190000412',
+    id: '49bfb3cc-5013-4945-9000-020000000001',
+    businessName: 'Orchard Market',
+    legalEntityName: 'Orchard Market Retail Pvt Ltd',
+    slug: 'trug-sample-orchard-market',
+    category: 'Produce & Groceries',
+    ownerName: 'Orchard Market Partner',
+    email: 'orchard.market@trug.in',
+    phone: '+91 93924 49721',
+    gstNumber: '36AAAAA0000A1Z5',
+    fssaiNumber: '13623011000842',
     address: {
-      line1: 'Studio 4B, Creators Hub',
-      locality: 'Bengaluru Core',
-      city: 'Bengaluru',
-      pincode: '560038',
+      line1: 'Road No. 36, Jubilee Hills',
+      locality: 'Jubilee Hills',
+      city: 'Hyderabad',
+      pincode: '500033',
     },
-    timings: '6:00 AM - 9:00 PM',
+    timings: '6:30 AM - 10:00 PM',
     isOpen: true,
     verificationStatus: 'Verified',
     documents: {
-      fssaiDoc: 'FSSAI_Certificate.pdf',
-      gstDoc: 'GSTIN_Registration.pdf',
-      storefrontPhoto: 'https://unpbalwhranarpggvckh.supabase.co/storage/v1/object/public/mobile-catalog/v1/b4d52908c4e6ba40aeee012f1a2895cba23b27c692373e540d797ca7ce824981-960.webp',
+      fssaiDoc: 'fssai_cert.pdf',
+      gstDoc: 'gstin_reg.pdf',
+      storefrontPhoto: 'https://pub-cdf20c31647144a1bc202a2fe4d80867.r2.dev/v1/tomato-d498d2156b91.jpg',
     },
     deliveryRadiusKm: 5,
-    minOrderValue: 80,
-    deliveryFee: 0,
-    currentPlan: 'Growth Champion',
-    planExpiry: '2027-01-01',
+    minOrderValue: 50,
+    deliveryFee: 25,
+    currentPlan: 'Hyperlocal Scale',
+    planExpiry: '2027-11-20',
   });
 
   const [products, setProducts] = useState<VendorManagedProduct[]>([]);
   const [inventoryLogs, setInventoryLogs] = useState<InventoryLog[]>([]);
   const [vendorOrders, setVendorOrders] = useState<Order[]>([]);
   const [recurringSubscriptions, setRecurringSubscriptions] = useState<RecurringOrder[]>([]);
-  const [deliverySlots, setDeliverySlots] = useState<DeliverySlotConfig[]>([
-    { id: 'slot-1', title: 'Morning Window', startTime: '06:30', endTime: '08:30', maxOrdersCapacity: 30, currentBookings: 8, cutOffTime: '22:00 previous day', isEnabled: true, type: 'delivery' },
-    { id: 'slot-2', title: 'Evening Window', startTime: '17:00', endTime: '19:30', maxOrdersCapacity: 40, currentBookings: 14, cutOffTime: '15:00 same day', isEnabled: true, type: 'delivery' },
-  ]);
+  const [deliverySlots, setDeliverySlots] = useState<DeliverySlotConfig[]>([]);
   const [customers, setCustomers] = useState<VendorCustomer[]>([]);
   const [staffMembers, setStaffMembers] = useState<StaffMember[]>([
-    { id: 'st-1', name: 'Kiran Bose', role: 'Store Manager', phone: '+91 98400 40008', status: 'Active', joinedDate: '2025-01-10' },
+    { id: 'st-1', name: 'Orchard Operations Lead', role: 'Store Manager', phone: '+91 93924 49721', status: 'Active', joinedDate: '2026-11-19' },
   ]);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -119,18 +116,85 @@ export function VendorProvider({ children }: { children: React.ReactNode }) {
     }, 3500);
   }, []);
 
-  // Fetch live products for vendor from Supabase
+  // Fetch live products & delivery slots for vendor from TRUG DB
   const fetchVendorLiveProducts = useCallback(async () => {
     try {
-      const res = await fetch('/api/admin-bootstrap');
-      if (res.ok) {
-        const json = await res.json();
+      const [adminBootstrapRes, bootstrapRes] = await Promise.all([
+        fetch('/api/admin-bootstrap'),
+        fetch('/api/bootstrap'),
+      ]);
+
+      if (adminBootstrapRes.ok) {
+        const json = await adminBootstrapRes.json();
         if (json.success && json.data && json.data.products) {
           setProducts(json.data.products);
         }
       }
+
+      if (bootstrapRes.ok) {
+        const bJson = await bootstrapRes.json();
+        if (bJson.success && bJson.data) {
+          if (bJson.data.deliverySlots && bJson.data.deliverySlots.length > 0) {
+            setDeliverySlots(
+              bJson.data.deliverySlots.map((s: any) => ({
+                id: s.id,
+                title: `${new Date(s.starts_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - ${new Date(s.ends_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
+                startTime: new Date(s.starts_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                endTime: new Date(s.ends_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                maxOrdersCapacity: s.capacity || 12,
+                currentBookings: s.booked || 0,
+                cutOffTime: '30 mins before window',
+                isEnabled: s.enabled,
+                type: 'delivery' as const,
+              }))
+            );
+          }
+          if (bJson.data.orders && bJson.data.orders.length > 0) {
+            setVendorOrders(
+              bJson.data.orders.map((o: any) => ({
+                id: o.id,
+                orderNumber: `ORD-${o.order_number || o.id.slice(0, 5)}`,
+                vendorId: o.location_id || '49bfb3cc-5013-4945-9000-020000000001',
+                vendorName: o.store_name || 'Orchard Market',
+                vendorSlug: o.store_slug || 'trug-sample-orchard-market',
+                items: (o.items || []).map((it: any, idx: number) => ({
+                  id: `it-${idx}`,
+                  productId: `prod-${idx}`,
+                  productSlug: (it.sku_name || 'item').toLowerCase().replace(/\s+/g, '-'),
+                  productName: it.sku_name || 'Item',
+                  productImage: 'https://pub-cdf20c31647144a1bc202a2fe4d80867.r2.dev/v1/tomato-d498d2156b91.jpg',
+                  variantId: `var-${idx}`,
+                  variantName: `${it.pack_size || 1} ${it.unit || 'unit'}`,
+                  price: (it.unit_price_paise || 0) / 100,
+                  quantity: it.packs || 1,
+                  totalPrice: (it.line_total_paise || 0) / 100,
+                })),
+                subtotal: (o.subtotal_paise || 0) / 100,
+                deliveryFee: (o.delivery_fee_paise || 0) / 100,
+                total: (o.total_paise || 0) / 100,
+                status: o.status === 'delivered' ? 'Delivered' : o.status === 'cancelled' ? 'Cancelled' : 'Placed',
+                createdAt: o.created_at,
+                deliverySlot: 'Morning Delivery',
+                deliveryAddress: {
+                  id: 'addr-1',
+                  tag: 'Home' as const,
+                  name: o.recipient || 'Customer',
+                  phone: o.recipient_phone || '+91 93924 49721',
+                  addressLine: o.address_line || 'Jubilee Hills',
+                  locality: 'Hyderabad',
+                  pincode: o.postcode || '500033',
+                  isDefault: true,
+                },
+                timeline: [
+                  { status: 'Placed' as const, timestamp: o.created_at, note: 'Order captured in TRUG database' },
+                ],
+              }))
+            );
+          }
+        }
+      }
     } catch (e) {
-      console.error('Failed to load vendor products:', e);
+      console.error('Failed to load vendor live data:', e);
     }
   }, []);
 
