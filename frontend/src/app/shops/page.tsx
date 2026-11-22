@@ -2,49 +2,50 @@
 
 import React, { useState, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-
 import { useCart } from '@/context/CartContext';
 import ShopCard from '@/components/ShopCard';
-import { Search, Filter, SlidersHorizontal, MapPin, Star, Clock } from 'lucide-react';
+import { Search, Filter, SlidersHorizontal, MapPin, Star, Clock, Store } from 'lucide-react';
 
 function ShopsContent() {
   const searchParams = useSearchParams();
   const initialQuery = searchParams.get('q') || '';
-  const { vendors, currentLocality } = useCart();
+  const initialCategory = searchParams.get('category') || 'All';
+  const { vendors, categories: dbCategories, currentLocality } = useCart();
 
   const [search, setSearch] = useState(initialQuery);
-  const [selectedCategory, setSelectedCategory] = useState<string>('All');
+  const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory);
   const [onlyOpen, setOnlyOpen] = useState<boolean>(false);
   const [minRating, setMinRating] = useState<number>(0);
-  const [sortBy, setSortBy] = useState<'distance' | 'rating' | 'reviews'>('distance');
+  const [sortBy, setSortBy] = useState<'distance' | 'rating' | 'reviews'>('rating');
 
-  const categories = [
-    'All',
-    'Dairy & Essentials',
-    'Farm Fresh',
-    'Groceries',
-    'Daily Meat & Eggs',
-    'Artisan Bakery',
-  ];
+  // Derive unique categories dynamically from live database vendors and categories
+  const categoriesList = useMemo(() => {
+    const set = new Set<string>();
+    vendors.forEach((v) => {
+      if (v.category) set.add(v.category);
+    });
+    dbCategories.forEach((c: any) => {
+      if (c.title) set.add(c.title);
+      if (c.category) set.add(c.category);
+    });
+    return ['All', ...Array.from(set)];
+  }, [vendors, dbCategories]);
 
   const filteredVendors = useMemo(() => {
     return vendors
       .filter((v) => {
-        // Search
         const matchesSearch =
           v.name.toLowerCase().includes(search.toLowerCase()) ||
           v.tagline.toLowerCase().includes(search.toLowerCase()) ||
           v.category.toLowerCase().includes(search.toLowerCase()) ||
-          v.categories.some((c) => c.toLowerCase().includes(search.toLowerCase()));
+          (v.categories && v.categories.some((c) => c.toLowerCase().includes(search.toLowerCase())));
 
-        // Category filter
         const matchesCategory =
-          selectedCategory === 'All' || v.category === selectedCategory;
+          selectedCategory === 'All' ||
+          v.category.toLowerCase().includes(selectedCategory.toLowerCase()) ||
+          (v.categories && v.categories.some((c) => c.toLowerCase().includes(selectedCategory.toLowerCase())));
 
-        // Open filter
         const matchesOpen = !onlyOpen || v.isOpen;
-
-        // Rating
         const matchesRating = v.rating >= minRating;
 
         return matchesSearch && matchesCategory && matchesOpen && matchesRating;
@@ -52,8 +53,7 @@ function ShopsContent() {
       .sort((a, b) => {
         if (sortBy === 'rating') return b.rating - a.rating;
         if (sortBy === 'reviews') return b.reviewsCount - a.reviewsCount;
-        // distance default
-        return parseFloat(a.distance) - parseFloat(b.distance);
+        return parseFloat(a.distance || '0.5') - parseFloat(b.distance || '0.5');
       });
   }, [vendors, search, selectedCategory, onlyOpen, minRating, sortBy]);
 
@@ -66,94 +66,82 @@ function ShopsContent() {
             <MapPin className="w-3.5 h-3.5" />
             <span>Serving {currentLocality}</span>
           </div>
-          <h1 className="text-3xl font-serif font-black text-[#302B28] mt-1">
-            Browse Nearby Shops
+          <h1 className="text-3xl font-black text-[#302B28] mt-1">
+            Live Partner Storefronts
           </h1>
-          <p className="text-xs text-[#6B5145] mt-1">
-            Found {filteredVendors.length} independent local stores within walking distance
+          <p className="text-xs sm:text-sm text-[#6B5145] mt-1">
+            Displaying live merchant profiles directly from Supabase `partner_profiles`.
           </p>
         </div>
 
-        {/* Search Bar */}
-        <div className="w-full md:w-80 relative">
+        {/* Search Input */}
+        <div className="relative w-full md:w-80">
+          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#6B5145]/60" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search stores or items..."
-            className="w-full pl-9 pr-4 py-2 bg-white text-xs text-[#302B28] rounded-full border border-[#F1E6DC] focus:outline-none focus:border-[#D97A5B] shadow-xs"
+            placeholder="Search stores or category..."
+            className="w-full bg-white border border-[#F1E6DC] rounded-full pl-10 pr-4 py-2 text-xs font-semibold focus:outline-hidden focus:border-[#D97A5B] transition shadow-xs text-[#302B28]"
           />
-          <Search className="w-4 h-4 text-[#6B5145] absolute left-3 top-1/2 -translate-y-1/2" />
         </div>
       </div>
 
-      {/* Filter and Sorting Controls */}
-      <div className="space-y-4">
-        {/* Category Pills */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              className={`whitespace-nowrap px-4 py-2 rounded-full text-xs font-bold transition ${
-                selectedCategory === cat
-                  ? 'bg-[#302B28] text-white shadow-xs'
-                  : 'bg-white text-[#6B5145] hover:bg-[#F1E6DC] border border-[#F1E6DC]'
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
+      {/* Categories Filter Pills */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+        {categoriesList.map((cat) => (
+          <button
+            key={cat}
+            onClick={() => setSelectedCategory(cat)}
+            className={`px-4 py-2 rounded-full text-xs font-bold transition shrink-0 ${
+              selectedCategory === cat
+                ? 'bg-[#D97A5B] text-white shadow-xs'
+                : 'bg-white hover:bg-[#F1E6DC] text-[#6B5145] border border-[#F1E6DC]'
+            }`}
+          >
+            {cat}
+          </button>
+        ))}
+      </div>
+
+      {/* Filters & Results Counter */}
+      <div className="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-[#F1E6DC] shadow-xs">
+        <div className="text-xs font-bold text-[#302B28]">
+          Found <span className="text-[#D97A5B]">{filteredVendors.length}</span> live merchants
         </div>
 
-        {/* Secondary filters row */}
-        <div className="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-[#F1E6DC]">
-          <div className="flex flex-wrap items-center gap-4 text-xs font-medium text-[#302B28]">
-            {/* Open now switch */}
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={onlyOpen}
-                onChange={(e) => setOnlyOpen(e.target.checked)}
-                className="rounded accent-[#D97A5B] w-4 h-4"
-              />
-              <span>Open Now Only</span>
-            </label>
-
-            <span className="text-[#F1E6DC]">|</span>
-
-            {/* Min Rating */}
-            <div className="flex items-center gap-1.5">
-              <Star className="w-3.5 h-3.5 text-[#D97A5B]" />
-              <select
-                value={minRating}
-                onChange={(e) => setMinRating(Number(e.target.value))}
-                className="bg-[#FAF5F0] border border-[#F1E6DC] rounded-lg px-2 py-1 text-xs text-[#302B28] focus:outline-none focus:border-[#D97A5B]"
-              >
-                <option value={0}>All Ratings</option>
-                <option value={4.5}>4.5+ Stars</option>
-                <option value={4.8}>4.8+ Stars</option>
-              </select>
-            </div>
+        <div className="flex flex-wrap items-center gap-3 text-xs font-semibold">
+          {/* Min Rating */}
+          <div className="flex items-center gap-1.5 bg-[#FAF5F0] px-3 py-1.5 rounded-xl border border-[#F1E6DC]">
+            <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+            <select
+              value={minRating}
+              onChange={(e) => setMinRating(Number(e.target.value))}
+              className="bg-transparent focus:outline-hidden text-[#302B28] cursor-pointer"
+            >
+              <option value={0}>All Ratings</option>
+              <option value={4.5}>4.5+ Stars</option>
+              <option value={4.8}>4.8+ Stars</option>
+            </select>
           </div>
 
-          {/* Sort By */}
-          <div className="flex items-center gap-2 text-xs">
-            <span className="text-[#6B5145]">Sort by:</span>
+          {/* Sort */}
+          <div className="flex items-center gap-1.5 bg-[#FAF5F0] px-3 py-1.5 rounded-xl border border-[#F1E6DC]">
+            <SlidersHorizontal className="w-3.5 h-3.5 text-[#6B5145]" />
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
-              className="bg-[#FAF5F0] border border-[#F1E6DC] rounded-lg px-3 py-1.5 text-xs font-semibold text-[#302B28] focus:outline-none focus:border-[#D97A5B]"
+              className="bg-transparent focus:outline-hidden text-[#302B28] cursor-pointer"
             >
-              <option value="distance">Distance (Nearest First)</option>
-              <option value="rating">Customer Rating</option>
+              <option value="rating">Top Rated</option>
               <option value="reviews">Most Reviewed</option>
+              <option value="distance">Nearest</option>
             </select>
           </div>
         </div>
       </div>
 
-      {/* Grid of Shops */}
+      {/* Grid of Store Cards */}
       {filteredVendors.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredVendors.map((vendor) => (
@@ -161,26 +149,12 @@ function ShopsContent() {
           ))}
         </div>
       ) : (
-        /* Empty State */
-        <div className="bg-white rounded-3xl border border-[#F1E6DC] p-12 text-center space-y-4">
-          <div className="w-16 h-16 rounded-full bg-[#FAF5F0] text-[#6B5145] flex items-center justify-center mx-auto">
-            <Search className="w-8 h-8" />
-          </div>
-          <h3 className="font-serif font-bold text-lg text-[#302B28]">No stores found</h3>
+        <div className="text-center py-20 bg-white rounded-3xl border border-[#F1E6DC] space-y-3">
+          <Store className="w-10 h-10 text-[#6B5145]/40 mx-auto" />
+          <h3 className="font-extrabold text-base text-[#302B28]">No merchants found</h3>
           <p className="text-xs text-[#6B5145] max-w-sm mx-auto">
-            We couldn't find any neighbourhood shops matching your filters. Try clearing your search query or selecting a different category.
+            Try adjusting your search or selected category filter.
           </p>
-          <button
-            onClick={() => {
-              setSearch('');
-              setSelectedCategory('All');
-              setOnlyOpen(false);
-              setMinRating(0);
-            }}
-            className="px-4 py-2 bg-[#D97A5B] text-white text-xs font-bold rounded-full hover:bg-[#c2694d] transition"
-          >
-            Reset Filters
-          </button>
         </div>
       )}
     </div>
@@ -189,9 +163,8 @@ function ShopsContent() {
 
 export default function ShopsPage() {
   return (
-    <Suspense fallback={<div className="max-w-7xl mx-auto p-12 text-center text-xs text-[#6B5145]">Finding neighbourhood shops...</div>}>
+    <Suspense fallback={<div className="min-h-screen bg-[#FAF5F0] p-8 text-center text-xs font-bold">Loading live shops from database...</div>}>
       <ShopsContent />
     </Suspense>
   );
 }
-
