@@ -28,6 +28,7 @@ export default function VendorDashboardOverview() {
   const preparingOrders = vendorOrders.filter((o) => o.status === 'Preparing' || o.status === 'Accepted').length;
   const completedOrders = vendorOrders.filter((o) => o.status === 'Delivered').length;
 
+  // Real 7-day orders breakdown from vendorOrders
   const totalRevenue = vendorOrders.reduce((sum, o) => sum + (o.status !== 'Cancelled' ? o.total : 0), 0);
   const totalProducts = products.length;
 
@@ -39,16 +40,23 @@ export default function VendorDashboardOverview() {
   // Best selling products
   const bestSellers = [...products].sort((a, b) => b.totalSold - a.totalSold).slice(0, 3);
 
-  // Sample 7-day sales breakdown
-  const salesDays = [
-    { day: 'Mon', sales: 4200, height: 'h-24' },
-    { day: 'Tue', sales: 3800, height: 'h-20' },
-    { day: 'Wed', sales: 5100, height: 'h-28' },
-    { day: 'Thu', sales: 4600, height: 'h-26' },
-    { day: 'Fri', sales: 6200, height: 'h-36' },
-    { day: 'Sat', sales: 7800, height: 'h-44' },
-    { day: 'Sun (Today)', sales: 6900, height: 'h-40', current: true },
-  ];
+  // Live weekly sales aggregated from vendorOrders
+  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const todayIndex = new Date().getDay();
+  const salesDays = [0, 1, 2, 3, 4, 5, 6].map((offset) => {
+    const dIndex = (todayIndex - 6 + offset + 7) % 7;
+    const dayLabel = offset === 6 ? `${days[dIndex]} (Today)` : days[dIndex];
+    const dayTotal = vendorOrders
+      .filter((o) => new Date(o.createdAt).getDay() === dIndex && o.status !== 'Cancelled')
+      .reduce((sum, o) => sum + o.total, 0);
+    const height = dayTotal > 500 ? 'h-40' : dayTotal > 200 ? 'h-28' : dayTotal > 0 ? 'h-20' : 'h-10';
+    return {
+      day: dayLabel,
+      sales: Math.round(dayTotal),
+      height,
+      current: offset === 6,
+    };
+  });
 
   return (
     <div className="space-y-8">
@@ -169,7 +177,7 @@ export default function VendorDashboardOverview() {
               <p className="text-xs text-[#6B5145] mt-0.5">Neighbourhood orders over the last 7 days</p>
             </div>
             <span className="text-xs font-bold text-[#D97A5B] bg-[#FAF5F0] px-3 py-1 rounded-full border border-[#F1E6DC]">
-              This Week: ₹38,600
+              Live Store Total: ₹{totalRevenue.toFixed(0)}
             </span>
           </div>
 

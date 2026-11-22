@@ -213,19 +213,19 @@ export default function VendorSidebar({
           {!collapsed ? (
             <div className="bg-white/5 p-3 rounded-2xl border border-white/5 text-[11px] flex items-center gap-3">
               <div className="w-9 h-9 rounded-xl bg-[#D97A5B]/20 text-[#D97A5B] flex items-center justify-center font-bold text-xs shrink-0">
-                RY
+                {(vendorProfile.ownerName || 'TR').slice(0, 2).toUpperCase()}
               </div>
               <div className="overflow-hidden">
-                <div className="font-extrabold text-[#FAF5F0] truncate">{vendorProfile.ownerName}</div>
-                <div className="text-[10px] text-[#FAF5F0]/60">Merchant #KR-901</div>
+                <div className="font-extrabold text-[#FAF5F0] truncate">{vendorProfile.businessName}</div>
+                <div className="text-[10px] text-[#FAF5F0]/60">{vendorProfile.ownerName}</div>
               </div>
             </div>
           ) : (
             <div
               className="w-10 h-10 rounded-2xl bg-[#D97A5B]/20 text-[#D97A5B] mx-auto flex items-center justify-center font-bold text-xs"
-              title={vendorProfile.ownerName}
+              title={vendorProfile.businessName}
             >
-              RY
+              {(vendorProfile.ownerName || 'TR').slice(0, 2).toUpperCase()}
             </div>
           )}
         </div>
