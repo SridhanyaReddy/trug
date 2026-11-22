@@ -119,17 +119,6 @@ export default function Header() {
               Daily Subscriptions
             </Link>
 
-            {/* Account Link */}
-            <Link
-              href="/account"
-              className="flex items-center gap-1.5 text-xs font-bold text-[#302B28] bg-white px-3.5 py-2 rounded-full border border-[#F1E6DC] hover:border-[#D97A5B] transition shadow-xs"
-            >
-              <UserIcon className="w-4 h-4 text-[#D97A5B]" />
-              <span className="hidden sm:inline">
-                {isLoggedIn ? user.name.split(' ')[0] : 'Sign In'}
-              </span>
-            </Link>
-
             {/* Cart Button */}
             <Link
               href="/cart"
@@ -210,13 +199,6 @@ export default function Header() {
               className="block py-2 text-sm font-bold text-[#302B28] hover:text-[#D97A5B]"
             >
               Recurring Daily Subscriptions
-            </Link>
-            <Link
-              href="/account"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block py-2 text-sm font-bold text-[#302B28] hover:text-[#D97A5B]"
-            >
-              My Orders & Account
             </Link>
           </div>
         )}

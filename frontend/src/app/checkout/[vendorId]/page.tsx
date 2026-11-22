@@ -187,12 +187,6 @@ function CheckoutContent() {
             <div className="bg-white p-5 rounded-3xl border border-[#F1E6DC] space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="font-bold text-sm text-[#302B28]">Delivery Address</h3>
-                <Link
-                  href="/account?tab=addresses"
-                  className="text-xs font-bold text-[#D97A5B] hover:underline"
-                >
-                  Manage Addresses
-                </Link>
               </div>
 
               <div className="space-y-2">

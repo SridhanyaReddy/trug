@@ -102,12 +102,12 @@ export default function Footer() {
 
           <div>
             <h5 className="text-xs font-bold uppercase tracking-wider text-[#D97A5B] mb-4">
-              Customer Support
+              Instant Ordering
             </h5>
             <ul className="space-y-2.5 text-xs text-[#FAF5F0]/80">
               <li>
-                <Link href="/account" className="hover:text-[#D97A5B] transition">
-                  Order History & Live Status
+                <Link href="/shops" className="hover:text-[#D97A5B] transition">
+                  Browse Neighbourhood Shops
                 </Link>
               </li>
               <li>
@@ -116,13 +116,8 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/account?tab=support" className="hover:text-[#D97A5B] transition">
-                  Neighbourhood Helpdesk
-                </Link>
-              </li>
-              <li>
-                <Link href="/account?tab=addresses" className="hover:text-[#D97A5B] transition">
-                  Saved Delivery Addresses
+                <Link href="/cart" className="hover:text-[#D97A5B] transition">
+                  Active Shopping Cart
                 </Link>
               </li>
             </ul>

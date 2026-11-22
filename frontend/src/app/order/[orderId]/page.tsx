@@ -39,10 +39,10 @@ function OrderTrackingContent() {
           Could not locate order ID #{orderId}. It may have been placed under a different session.
         </p>
         <Link
-          href="/account"
+          href="/shops"
           className="inline-block px-5 py-2.5 rounded-full bg-[#D97A5B] text-white text-xs font-bold"
         >
-          View My Orders
+          Return to Shops
         </Link>
       </div>
     );
