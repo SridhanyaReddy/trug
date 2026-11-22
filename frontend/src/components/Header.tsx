@@ -80,15 +80,22 @@ export default function Header({ onOpenCart, onOpenAuth }: HeaderProps) {
               </div>
             </Link>
 
-            {/* Location selector button */}
+            {/* Zepto-Style Location Selector Pill */}
             <button
               onClick={() => setShowLocationModal(true)}
-              className="hidden md:flex items-center gap-2 bg-[#F1E6DC]/80 hover:bg-[#F1E6DC] px-4 py-2 rounded-full text-xs font-semibold text-[#302B28] transition border border-[#6B5145]/10 max-w-[250px]"
+              className="flex items-center gap-2 bg-[#F1E6DC]/90 hover:bg-[#F1E6DC] px-3.5 py-2 rounded-full text-xs font-semibold text-[#302B28] transition border border-[#6B5145]/15 max-w-[260px] shadow-2xs"
               title="Change Delivery Locality"
             >
-              <MapPin className="w-3.5 h-3.5 text-[#D97A5B] shrink-0" />
-              <span className="truncate">{currentLocality}</span>
-              <ChevronDown className="w-3 h-3 text-[#6B5145] shrink-0" />
+              <div className="w-5 h-5 rounded-full bg-[#D97A5B] text-white flex items-center justify-center shrink-0">
+                <MapPin className="w-3 h-3" />
+              </div>
+              <div className="flex flex-col text-left truncate">
+                <span className="text-[10px] font-black text-[#D97A5B] uppercase tracking-wider leading-none">
+                  Delivery in 15 mins
+                </span>
+                <span className="truncate text-xs font-bold leading-tight mt-0.5">{currentLocality}</span>
+              </div>
+              <ChevronDown className="w-3.5 h-3.5 text-[#6B5145] shrink-0" />
             </button>
           </div>
 
@@ -123,6 +130,24 @@ export default function Header({ onOpenCart, onOpenAuth }: HeaderProps) {
               <Repeat className="w-3.5 h-3.5 text-[#D97A5B]" />
               Daily Subscriptions
             </Link>
+
+            {/* Zepto-Style Login / Account Button */}
+            {isLoggedIn ? (
+              <div className="flex items-center gap-2 bg-[#F1E6DC]/80 px-3.5 py-2 rounded-full border border-[#6B5145]/15 text-xs font-bold text-[#302B28]">
+                <div className="w-5 h-5 rounded-full bg-[#302B28] text-white flex items-center justify-center text-[10px]">
+                  {user.name.slice(0, 1).toUpperCase()}
+                </div>
+                <span className="hidden lg:inline">{user.name.split(' ')[0]}</span>
+              </div>
+            ) : (
+              <button
+                onClick={onOpenAuth}
+                className="hidden sm:flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold tracking-wide border border-[#6B5145]/30 text-[#302B28] hover:bg-[#F1E6DC] transition"
+              >
+                <UserIcon className="w-3.5 h-3.5 text-[#D97A5B]" />
+                <span>Login</span>
+              </button>
+            )}
 
             {/* Zepto-Style Cart CTA Button */}
             <button

@@ -98,7 +98,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [recurringOrders, setRecurringOrders] = useState<RecurringOrder[]>([]);
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(true);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [isLoadingDatabase, setIsLoadingDatabase] = useState<boolean>(true);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
