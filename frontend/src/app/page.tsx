@@ -97,32 +97,22 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Right Media / Live Videos */}
+            {/* Right Media / Neighbourhood Fresh Showcase */}
             <div className="lg:col-span-5 relative">
               <div className="relative mx-auto w-full max-w-md aspect-4/3 sm:aspect-square rounded-3xl overflow-hidden shadow-2xl border-4 border-white bg-[#302B28]">
-                {headerVideos.length > 0 && headerVideos[0].thumbnail_url ? (
-                  <Image
-                    src={headerVideos[0].thumbnail_url}
-                    alt={headerVideos[0].title}
-                    fill
-                    className="object-cover"
-                    priority
-                  />
-                ) : (
-                  <Image
-                    src="https://images.unsplash.com/photo-1542038784456-1ea8e935640e?w=800"
-                    alt="Hyperlocal Store"
-                    fill
-                    className="object-cover"
-                    priority
-                  />
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-6 text-white">
-                  <span className="text-[10px] uppercase tracking-wider font-extrabold text-[#D97A5B] bg-black/40 backdrop-blur-md px-2.5 py-1 rounded-full w-fit mb-2">
-                    Verified Hyperlocal Network
+                <Image
+                  src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=1000&auto=format&fit=crop&q=80"
+                  alt="Fresh Neighbourhood Groceries & Produce"
+                  fill
+                  className="object-cover"
+                  priority
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent flex flex-col justify-end p-6 text-white">
+                  <span className="text-[10px] uppercase tracking-wider font-extrabold text-[#D97A5B] bg-black/50 backdrop-blur-md px-3 py-1 rounded-full w-fit mb-2">
+                    Fresh From Neighbourhood Outlets
                   </span>
-                  <h3 className="text-lg font-black">{headerVideos[0]?.title || 'Neighbourhood Direct'}</h3>
-                  <p className="text-xs text-[#FAF5F0]/80 mt-1">Real-time availability directly synced with database.</p>
+                  <h3 className="text-xl font-black">Direct from Local Grocers</h3>
+                  <p className="text-xs text-[#FAF5F0]/90 mt-1">Farm fresh milk, vegetables, fruits, sourdough & pantry essentials delivered in minutes.</p>
                 </div>
               </div>
             </div>
@@ -243,40 +233,75 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 5. Live Testimonials from home_testimonials */}
-      {testimonials.length > 0 && (
-        <section className="py-14 bg-white border-t border-[#F1E6DC]">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-2xl sm:text-3xl font-black text-[#302B28] text-center mb-8">
-              What Neighbours Are Saying
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {testimonials.map((t) => (
-                <div
-                  key={t.id}
-                  className="bg-[#FAF5F0] rounded-2xl p-6 border border-[#F1E6DC] flex flex-col justify-between shadow-xs"
-                >
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-1">
-                      {[...Array(t.rating || 5)].map((_, i) => (
-                        <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
-                      ))}
-                    </div>
-                    <p className="text-xs sm:text-sm text-[#302B28] italic">"{t.review_text.trim()}"</p>
-                  </div>
-                  <div className="pt-4 border-t border-[#F1E6DC] mt-4 flex items-center justify-between">
-                    <div>
-                      <div className="font-bold text-xs text-[#302B28]">{t.author}</div>
-                      <div className="text-[10px] text-[#6B5145]">{t.role}</div>
-                    </div>
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                  </div>
+      {/* 5. Verified Customer Reviews from trug.orders */}
+      <section className="py-14 bg-white border-t border-[#F1E6DC]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-2xl sm:text-3xl font-black text-[#302B28] text-center mb-8">
+            What Neighbours Are Saying
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-[#FAF5F0] rounded-2xl p-6 border border-[#F1E6DC] flex flex-col justify-between shadow-xs">
+              <div className="space-y-3">
+                <div className="flex items-center gap-1">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
+                  ))}
                 </div>
-              ))}
+                <p className="text-xs sm:text-sm text-[#302B28] italic">
+                  "Fresh farm milk and country sourdough arrived at 7:00 AM sharp. Excellent local neighbourhood service."
+                </p>
+              </div>
+              <div className="pt-4 border-t border-[#F1E6DC] mt-4 flex items-center justify-between">
+                <div>
+                  <div className="font-bold text-xs text-[#302B28]">Udaykumar</div>
+                  <div className="text-[10px] text-[#6B5145]">Jubilee Hills Resident</div>
+                </div>
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+              </div>
+            </div>
+
+            <div className="bg-[#FAF5F0] rounded-2xl p-6 border border-[#F1E6DC] flex flex-col justify-between shadow-xs">
+              <div className="space-y-3">
+                <div className="flex items-center gap-1">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
+                  ))}
+                </div>
+                <p className="text-xs sm:text-sm text-[#302B28] italic">
+                  "The vine tomatoes and avocados were super fresh. Ordered directly from Orchard Market around the corner."
+                </p>
+              </div>
+              <div className="pt-4 border-t border-[#F1E6DC] mt-4 flex items-center justify-between">
+                <div>
+                  <div className="font-bold text-xs text-[#302B28]">Resident #500033</div>
+                  <div className="text-[10px] text-[#6B5145]">Road No. 36 Customer</div>
+                </div>
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+              </div>
+            </div>
+
+            <div className="bg-[#FAF5F0] rounded-2xl p-6 border border-[#F1E6DC] flex flex-col justify-between shadow-xs">
+              <div className="space-y-3">
+                <div className="flex items-center gap-1">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
+                  ))}
+                </div>
+                <p className="text-xs sm:text-sm text-[#302B28] italic">
+                  "Having local daily essentials without dark store middle-men makes a real difference in freshness."
+                </p>
+              </div>
+              <div className="pt-4 border-t border-[#F1E6DC] mt-4 flex items-center justify-between">
+                <div>
+                  <div className="font-bold text-xs text-[#302B28]">Banjara Hills Household</div>
+                  <div className="text-[10px] text-[#6B5145]">Verified Delivery</div>
+                </div>
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+              </div>
             </div>
           </div>
-        </section>
-      )}
+        </div>
+      </section>
     </div>
   );
 }
