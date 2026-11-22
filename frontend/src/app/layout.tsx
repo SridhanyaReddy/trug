@@ -6,6 +6,11 @@ import AppShell from '@/components/AppShell';
 export const metadata: Metadata = {
   title: 'TRUG by Focsera | Hyperlocal Neighbourhood Commerce',
   description: 'Discover nearby independent shops and order fresh everyday essentials delivered to your doorstep in 15-30 minutes.',
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+    apple: '/logo.png',
+  },
 };
 
 export default function RootLayout({
