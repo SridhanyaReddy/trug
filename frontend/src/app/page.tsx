@@ -198,40 +198,50 @@ export default function HomePage() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {vendors.slice(0, 6).map((vendor) => (
-              <ShopCard key={vendor.id} vendor={vendor} />
-            ))}
-          </div>
+          {vendors.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {vendors.slice(0, 6).map((vendor) => (
+                <ShopCard key={vendor.id} vendor={vendor} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12 px-4 bg-white/60 rounded-3xl border border-[#F1E6DC]">
+              <Store className="w-10 h-10 text-[#6B5145]/40 mx-auto mb-2" />
+              <p className="font-bold text-sm text-[#302B28]">No stores currently listed for this area</p>
+              <p className="text-xs text-[#6B5145] mt-1">Verified local merchant stores will appear here once onboarding is completed.</p>
+            </div>
+          )}
         </div>
       </section>
 
       {/* 4. Popular Items Showcase */}
-      <section className="py-14 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#D97A5B] uppercase tracking-wider mb-1">
-              <ShoppingBag className="w-3.5 h-3.5" />
-              <span>Real-Time Inventory</span>
+      {products.length > 0 && (
+        <section className="py-14 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#D97A5B] uppercase tracking-wider mb-1">
+                <ShoppingBag className="w-3.5 h-3.5" />
+                <span>Real-Time Inventory</span>
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-black text-[#302B28]">Popular Catalogue Items</h2>
+              <p className="text-xs sm:text-sm text-[#6B5145] mt-1">Sourced direct from local merchants.</p>
             </div>
-            <h2 className="text-2xl sm:text-3xl font-black text-[#302B28]">Popular Catalogue Items</h2>
-            <p className="text-xs sm:text-sm text-[#6B5145] mt-1">Sourced direct from local merchants.</p>
+            <Link
+              href="/shops"
+              className="text-xs font-bold text-[#D97A5B] hover:text-[#c4694d] flex items-center gap-1 group"
+            >
+              <span>View Catalogue</span>
+              <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+            </Link>
           </div>
-          <Link
-            href="/shops"
-            className="text-xs font-bold text-[#D97A5B] hover:text-[#c4694d] flex items-center gap-1 group"
-          >
-            <span>View Catalogue</span>
-            <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-          </Link>
-        </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-          {products.slice(0, 8).map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
-      </section>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+            {products.slice(0, 8).map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* 5. Verified Customer Reviews from trug.orders */}
       <section className="py-14 bg-white border-t border-[#F1E6DC]">
