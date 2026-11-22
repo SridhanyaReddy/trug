@@ -18,7 +18,12 @@ import {
 import Image from 'next/image';
 import { useCart } from '@/context/CartContext';
 
-export default function Header() {
+interface HeaderProps {
+  onOpenCart?: () => void;
+  onOpenAuth?: () => void;
+}
+
+export default function Header({ onOpenCart, onOpenAuth }: HeaderProps) {
   const router = useRouter();
   const {
     currentLocality,
@@ -118,6 +123,20 @@ export default function Header() {
               <Repeat className="w-3.5 h-3.5 text-[#D97A5B]" />
               Daily Subscriptions
             </Link>
+
+            {/* Zepto-Style Cart CTA Button */}
+            <button
+              onClick={onOpenCart}
+              className="flex items-center gap-2 bg-[#D97A5B] hover:bg-[#c2694d] text-white px-4 py-2.5 rounded-full font-bold text-xs tracking-wide shadow-xs transition"
+            >
+              <ShoppingBag className="w-4 h-4" />
+              <span className="hidden sm:inline">My Basket</span>
+              {totalCartItemCount > 0 && (
+                <span className="bg-[#302B28] text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold">
+                  {totalCartItemCount}
+                </span>
+              )}
+            </button>
 
             {/* Mobile menu trigger */}
             <button

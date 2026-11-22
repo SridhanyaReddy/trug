@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Product, ProductVariant } from '@/types';
 import { useCart } from '@/context/CartContext';
-import { Plus, Check, Star, Repeat } from 'lucide-react';
+import { Plus, Minus, Check, Star, Repeat } from 'lucide-react';
 
 interface ProductCardProps {
   product: Product;
@@ -13,18 +13,32 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product, onOpenRecurringModal }: ProductCardProps) {
-  const { addToCart } = useCart();
+  const { cartItems, addToCart, updateQuantity } = useCart();
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant>(
     product.variants.find((v) => v.id === product.defaultVariantId) || product.variants[0]
   );
-  const [addedAnimation, setAddedAnimation] = useState(false);
+
+  const cartItem = cartItems.find(
+    (item) => item.product.id === product.id && item.variant.id === selectedVariant.id
+  );
+  const currentQty = cartItem ? cartItem.quantity : 0;
 
   const handleAdd = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     addToCart(product, selectedVariant, 1);
-    setAddedAnimation(true);
-    setTimeout(() => setAddedAnimation(false), 900);
+  };
+
+  const handleIncrement = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (cartItem) updateQuantity(cartItem.cartItemId, currentQty + 1);
+  };
+
+  const handleDecrement = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (cartItem) updateQuantity(cartItem.cartItemId, currentQty - 1);
   };
 
   return (
@@ -121,12 +135,36 @@ export default function ProductCard({ product, onOpenRecurringModal }: ProductCa
           </span>
         </div>
 
-        <Link
-          href={`/product/${product.slug}`}
-          className="px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1 bg-[#F1E6DC] hover:bg-[#D97A5B] hover:text-white text-[#6B5145] shadow-xs"
-        >
-          <span>View</span>
-        </Link>
+        {/* Zepto-Style Stepper / Add Button */}
+        <div>
+          {currentQty > 0 ? (
+            <div className="flex items-center bg-[#D97A5B] text-white rounded-xl px-2 py-1 gap-2 shadow-xs">
+              <button
+                onClick={handleDecrement}
+                className="w-5 h-5 rounded-md hover:bg-black/15 flex items-center justify-center font-black"
+                title="Decrease"
+              >
+                <Minus className="w-3 h-3 text-white" />
+              </button>
+              <span className="text-xs font-black min-w-3 text-center">{currentQty}</span>
+              <button
+                onClick={handleIncrement}
+                className="w-5 h-5 rounded-md hover:bg-black/15 flex items-center justify-center font-black"
+                title="Increase"
+              >
+                <Plus className="w-3 h-3 text-white" />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={handleAdd}
+              className="px-4 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 bg-[#FAF5F0] hover:bg-[#D97A5B] text-[#D97A5B] hover:text-white border border-[#D97A5B] shadow-2xs tracking-wide uppercase"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Add</span>
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
