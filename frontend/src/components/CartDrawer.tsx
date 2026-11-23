@@ -18,9 +18,13 @@ import {
   Briefcase,
   ChevronRight,
   Compass,
+  Wallet,
+  Clock,
+  Sparkles,
 } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import RealMapLocationPicker from '@/components/RealMapLocationPicker';
+import LiveDeliveryTracking from '@/components/LiveDeliveryTracking';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -42,7 +46,13 @@ export default function CartDrawer({ isOpen, onClose, onOpenAuth }: CartDrawerPr
 
   const [addresses, setAddresses] = useState<any[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<'cod' | 'upi'>('cod');
+  const [paymentMethod, setPaymentMethod] = useState<'cod' | 'upi' | 'wallet'>('cod');
+  const [deliverySlot, setDeliverySlot] = useState<string>('instant');
+  const [walletBalance, setWalletBalance] = useState<number>(150);
+  const [showAddAddressModal, setShowAddAddressModal] = useState<boolean>(false);
+  const [flatNumber, setFlatNumber] = useState('');
+  const [landmark, setLandmark] = useState('');
+  const [deliveryInstructions, setDeliveryInstructions] = useState('Ring bell and leave at door');
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState<any | null>(null);
   const [showRealMapPicker, setShowRealMapPicker] = useState(false);
@@ -53,7 +63,7 @@ export default function CartDrawer({ isOpen, onClose, onOpenAuth }: CartDrawerPr
     lng: number;
   } | null>(null);
 
-  // Fetch user addresses from live DB when logged in
+  // Fetch user addresses and wallet from live DB when logged in
   useEffect(() => {
     if (isLoggedIn && user.phone) {
       fetch(`/api/customer?phone=${encodeURIComponent(user.phone)}`)
@@ -64,6 +74,15 @@ export default function CartDrawer({ isOpen, onClose, onOpenAuth }: CartDrawerPr
             const def = data.profile.addresses.find((a: any) => a.is_default);
             if (def) setSelectedAddressId(def.id);
             else if (data.profile.addresses.length > 0) setSelectedAddressId(data.profile.addresses[0].id);
+          }
+        })
+        .catch(() => {});
+
+      fetch(`/api/customer/wallet?phone=${encodeURIComponent(user.phone)}`)
+        .then((r) => r.json())
+        .then((d) => {
+          if (d.success && d.balanceRupees !== undefined) {
+            setWalletBalance(d.balanceRupees);
           }
         })
         .catch(() => {});
@@ -92,14 +111,25 @@ export default function CartDrawer({ isOpen, onClose, onOpenAuth }: CartDrawerPr
 
     setIsPlacingOrder(true);
     try {
+      const fullAddressLine = [
+        flatNumber ? `Flat/House ${flatNumber}` : '',
+        selectedAddress?.address_line || 'Dundigal, Hyderabad',
+        landmark ? `Near ${landmark}` : '',
+      ]
+        .filter(Boolean)
+        .join(', ');
+
       const payload = {
         items: cartItems,
         phone: user.phone,
         paymentMethod,
-        deliveryAddress: selectedAddress || {
-          recipient: user.name || 'Resident',
-          address_line: 'Jubilee Hills, Hyderabad',
-          postcode: '500033',
+        deliverySlot,
+        instructions: deliveryInstructions,
+        deliveryAddress: {
+          recipient: selectedAddress?.recipient || user.name || 'Resident',
+          address_line: fullAddressLine,
+          locality: selectedAddress?.locality || 'Hyderabad',
+          postcode: selectedAddress?.postcode || '500043',
         },
       };
 
@@ -205,6 +235,18 @@ export default function CartDrawer({ isOpen, onClose, onOpenAuth }: CartDrawerPr
               </div>
 
               <div className="w-full space-y-2">
+                {/* Live Google Maps Tracking Embed */}
+                <LiveDeliveryTracking
+                  order={{
+                    id: orderSuccess.id || 'ord-new',
+                    orderNumber: orderSuccess.orderNumber,
+                    storeName: orderSuccess.storeName || 'Neighbourhood Grocers',
+                    addressLine: orderSuccess.address,
+                    deliverySlot,
+                    total: orderSuccess.total,
+                  }}
+                />
+
                 <Link
                   href="/profile"
                   onClick={() => {
@@ -362,33 +404,134 @@ export default function CartDrawer({ isOpen, onClose, onOpenAuth }: CartDrawerPr
                       )}
                     </div>
 
-                    {/* Payment Mode Selector */}
+                    {/* Scheduled Delivery Time-Slots */}
+                    <div className="bg-white p-4 rounded-2xl border border-[#F1E6DC] shadow-xs space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-black uppercase tracking-wider text-[#6B5145] flex items-center gap-1.5">
+                          <Clock className="w-3.5 h-3.5 text-[#D97A5B]" />
+                          Delivery Time-Slot
+                        </span>
+                        <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                          ₹0 Slot Fee
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        {[
+                          { id: 'instant', label: 'Instant Delivery', sub: 'Dispatched immediately' },
+                          { id: 'morning', label: 'Morning Fresh', sub: '6:30 AM - 8:00 AM' },
+                          { id: 'noon', label: 'Afternoon Batch', sub: '12:00 PM - 1:30 PM' },
+                          { id: 'evening', label: 'Evening Basket', sub: '6:00 PM - 7:30 PM' },
+                        ].map((slot) => {
+                          const isSel = deliverySlot === slot.id;
+                          return (
+                            <button
+                              key={slot.id}
+                              type="button"
+                              onClick={() => setDeliverySlot(slot.id)}
+                              className={`p-2.5 rounded-xl border text-left transition cursor-pointer ${
+                                isSel
+                                  ? 'bg-[#302B28] text-white border-[#302B28] shadow-xs'
+                                  : 'bg-[#FAF5F0] hover:bg-[#F1E6DC] text-[#302B28] border-[#F1E6DC]'
+                              }`}
+                            >
+                              <div className="font-extrabold text-[11px] leading-tight">{slot.label}</div>
+                              <div className={`text-[10px] mt-0.5 ${isSel ? 'text-white/80' : 'text-[#6B5145]'}`}>
+                                {slot.sub}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Delivery Instructions & Flat Details */}
                     <div className="bg-white p-4 rounded-2xl border border-[#F1E6DC] shadow-xs space-y-2.5">
                       <span className="text-[10px] font-black uppercase tracking-wider text-[#6B5145]">
-                        Payment Option
+                        Doorstep & Drop-off Notes
                       </span>
                       <div className="grid grid-cols-2 gap-2">
+                        <input
+                          type="text"
+                          value={flatNumber}
+                          onChange={(e) => setFlatNumber(e.target.value)}
+                          placeholder="Flat / House / Floor No."
+                          className="w-full px-3 py-2 bg-[#FAF5F0] rounded-xl text-xs font-semibold text-[#302B28] placeholder-[#6B5145]/70 border border-[#F1E6DC] focus:outline-hidden focus:border-[#D97A5B]"
+                        />
+                        <input
+                          type="text"
+                          value={landmark}
+                          onChange={(e) => setLandmark(e.target.value)}
+                          placeholder="Nearby Landmark / Gate"
+                          className="w-full px-3 py-2 bg-[#FAF5F0] rounded-xl text-xs font-semibold text-[#302B28] placeholder-[#6B5145]/70 border border-[#F1E6DC] focus:outline-hidden focus:border-[#D97A5B]"
+                        />
+                      </div>
+                      <div className="flex gap-1.5 overflow-x-auto text-[10px] pt-1">
+                        {[
+                          'Ring bell and leave at door',
+                          'Leave with security / guard',
+                          'Call upon arrival',
+                          'Do not ring bell',
+                        ].map((inst) => (
+                          <button
+                            key={inst}
+                            type="button"
+                            onClick={() => setDeliveryInstructions(inst)}
+                            className={`px-2.5 py-1 rounded-full border whitespace-nowrap transition cursor-pointer font-bold ${
+                              deliveryInstructions === inst
+                                ? 'bg-[#D97A5B] text-white border-[#D97A5B]'
+                                : 'bg-[#FAF5F0] text-[#6B5145] border-[#F1E6DC]'
+                            }`}
+                          >
+                            {inst}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Payment Mode Selector */}
+                    <div className="bg-white p-4 rounded-2xl border border-[#F1E6DC] shadow-xs space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-black uppercase tracking-wider text-[#6B5145]">
+                          Payment Option
+                        </span>
+                        <span className="text-[10px] font-bold text-[#D97A5B] flex items-center gap-1">
+                          <Wallet className="w-3 h-3" />
+                          <span>Balance: ₹{walletBalance}</span>
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2">
                         <button
                           type="button"
                           onClick={() => setPaymentMethod('cod')}
-                          className={`p-2.5 rounded-xl border text-xs font-bold text-center transition cursor-pointer ${
+                          className={`p-2 rounded-xl border text-xs font-bold text-center transition cursor-pointer ${
                             paymentMethod === 'cod'
                               ? 'bg-[#D97A5B] text-white border-[#D97A5B] shadow-xs'
                               : 'bg-[#FAF5F0] text-[#6B5145] border-[#F1E6DC]'
                           }`}
                         >
-                          Cash on Delivery
+                          Cash
                         </button>
                         <button
                           type="button"
                           onClick={() => setPaymentMethod('upi')}
-                          className={`p-2.5 rounded-xl border text-xs font-bold text-center transition cursor-pointer ${
+                          className={`p-2 rounded-xl border text-xs font-bold text-center transition cursor-pointer ${
                             paymentMethod === 'upi'
                               ? 'bg-[#D97A5B] text-white border-[#D97A5B] shadow-xs'
                               : 'bg-[#FAF5F0] text-[#6B5145] border-[#F1E6DC]'
                           }`}
                         >
-                          UPI / QR Code
+                          UPI / QR
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setPaymentMethod('wallet')}
+                          className={`p-2 rounded-xl border text-xs font-bold text-center transition cursor-pointer ${
+                            paymentMethod === 'wallet'
+                              ? 'bg-[#302B28] text-white border-[#302B28] shadow-xs'
+                              : 'bg-[#FAF5F0] text-[#6B5145] border-[#F1E6DC]'
+                          }`}
+                        >
+                          TRUG Wallet
                         </button>
                       </div>
                     </div>
