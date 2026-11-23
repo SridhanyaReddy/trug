@@ -8,7 +8,7 @@ A modern hyperlocal commerce platform connecting residential communities with ve
 
 ## Overview
 
-TRUG enables direct-to-doorstep delivery from neighbourhood merchants with zero delivery fees. The platform operates on a decentralized fulfillment model, routing orders directly from local neighborhood businesses rather than centralized dark stores.
+TRUG enables direct-to-doorstep delivery from neighbourhood merchants with zero delivery fees. The platform operates on a decentralized fulfillment model, connecting customers directly with local neighbourhood stores.
 
 ### Core Capabilities
 
@@ -17,19 +17,8 @@ TRUG enables direct-to-doorstep delivery from neighbourhood merchants with zero 
 - **Daily Subscriptions:** Automated recurring delivery management for daily essentials such as milk, eggs, and fresh bakery items.
 - **TRUG Wallet:** In-app wallet for instant checkout, easy balance top-ups, and immediate refund processing.
 - **Mobile-First Experience:** Optimized touch navigation with sticky category browsing, floating cart controls, and an app-like bottom navigation dock.
+- **Live Order Tracking:** Real-time visual tracking from order placement through dispatch and doorstep delivery.
 - **Integrated Support:** Direct operational support connected via WhatsApp (+91 95158 03954).
-
----
-
-## Applications
-
-The repository contains three primary portals:
-
-| Portal | Route | Description |
-| :--- | :--- | :--- |
-| **Customer Storefront** | `/` | Browse local stores, manage cart, track orders, and configure delivery locations. |
-| **Merchant Dashboard** | `/vendor/dashboard` | Manage product catalogs, monitor incoming orders, update inventory, and configure delivery windows. |
-| **Admin Control Tower** | `/admin/dashboard` | Platform monitoring, vendor verification, order tracking, and directory management. |
 
 ---
 
