@@ -208,6 +208,47 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
       const savedLocality = localStorage.getItem('trug_locality');
       if (savedLocality && savedLocality !== 'Bengaluru Core') setCurrentLocality(savedLocality);
+
+      // Hydrate user session from localStorage so refresh preserves logged-in user
+      const savedSession = localStorage.getItem('trug_user_session');
+      if (savedSession) {
+        const parsed = JSON.parse(savedSession);
+        if (parsed.phone) {
+          setIsLoggedIn(true);
+          setUser((prev) => ({
+            ...prev,
+            phone: parsed.phone,
+            ...(parsed.name ? { name: parsed.name } : {}),
+            ...(parsed.email ? { email: parsed.email } : {}),
+            ...(parsed.id ? { id: parsed.id } : {}),
+          }));
+
+          // Background re-fetch live profile from database to ensure fresh data
+          fetch(`/api/customer?phone=${encodeURIComponent(parsed.phone)}`)
+            .then((r) => r.json())
+            .then((res) => {
+              if (res.success && res.profile) {
+                setUser((prev) => ({
+                  ...prev,
+                  id: res.profile.userId || prev.id,
+                  name: res.profile.name || prev.name,
+                  email: res.profile.email || prev.email,
+                  addresses: res.profile.addresses && res.profile.addresses.length > 0 ? res.profile.addresses.map((a: any) => ({
+                    id: a.id,
+                    tag: a.label || 'Home',
+                    name: a.recipient || res.profile.name,
+                    phone: a.phone,
+                    addressLine: a.address_line,
+                    locality: a.locality,
+                    pincode: a.postcode,
+                    isDefault: a.is_default,
+                  })) : prev.addresses,
+                }));
+              }
+            })
+            .catch(() => {});
+        }
+      }
     } catch {
       // ignore
     }

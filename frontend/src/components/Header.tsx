@@ -21,9 +21,10 @@ import { useCart } from '@/context/CartContext';
 interface HeaderProps {
   onOpenCart?: () => void;
   onOpenAuth?: () => void;
+  onOpenProfile?: () => void;
 }
 
-export default function Header({ onOpenCart, onOpenAuth }: HeaderProps) {
+export default function Header({ onOpenCart, onOpenAuth, onOpenProfile }: HeaderProps) {
   const router = useRouter();
   const {
     currentLocality,
@@ -133,23 +134,24 @@ export default function Header({ onOpenCart, onOpenAuth }: HeaderProps) {
 
             {/* Zepto-Style Login / Account Button */}
             {isLoggedIn ? (
-              <Link
-                href="/profile"
-                className="flex items-center gap-2 bg-[#F1E6DC]/90 hover:bg-[#F1E6DC] px-3.5 py-2 rounded-full border border-[#6B5145]/15 text-xs font-bold text-[#302B28] transition shadow-2xs"
+              <button
+                onClick={onOpenProfile}
+                className="flex items-center gap-2 bg-[#F1E6DC]/90 hover:bg-[#F1E6DC] px-3.5 py-2 rounded-full border border-[#6B5145]/15 text-xs font-bold text-[#302B28] transition shadow-2xs cursor-pointer"
+                title="Account & Addresses"
               >
                 <div className="w-5 h-5 rounded-full bg-[#D97A5B] text-white flex items-center justify-center text-[10px] font-black">
-                  {user.name.slice(0, 1).toUpperCase()}
+                  {(user.name || 'T').slice(0, 1).toUpperCase()}
                 </div>
                 <span>Profile</span>
-              </Link>
+              </button>
             ) : (
-              <Link
-                href="/login"
-                className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold tracking-wide border border-[#D97A5B] text-[#D97A5B] hover:bg-[#D97A5B] hover:text-white transition shadow-2xs"
+              <button
+                onClick={onOpenAuth}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold tracking-wide border border-[#D97A5B] text-[#D97A5B] hover:bg-[#D97A5B] hover:text-white transition shadow-2xs cursor-pointer"
               >
                 <UserIcon className="w-3.5 h-3.5" />
                 <span>Login</span>
-              </Link>
+              </button>
             )}
 
             {/* Zepto-Style Cart CTA Button */}

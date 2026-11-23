@@ -5,6 +5,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import CartDrawer from '@/components/CartDrawer';
 import AuthModal from '@/components/AuthModal';
+import ProfileDrawer from '@/components/ProfileDrawer';
 import { useCart } from '@/context/CartContext';
 import { ShoppingBag, ArrowRight } from 'lucide-react';
 
@@ -12,12 +13,17 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const { totalCartItemCount, cartItems } = useCart();
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   const totalAmount = cartItems.reduce((acc, item) => acc + item.variant.price * item.quantity, 0);
 
   return (
     <>
-      <Header onOpenCart={() => setIsCartOpen(true)} onOpenAuth={() => setIsAuthOpen(true)} />
+      <Header
+        onOpenCart={() => setIsCartOpen(true)}
+        onOpenAuth={() => setIsAuthOpen(true)}
+        onOpenProfile={() => setIsProfileOpen(true)}
+      />
       <main className="flex-1">{children}</main>
       <Footer />
 
@@ -54,6 +60,16 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         onClose={() => setIsCartOpen(false)}
         onOpenAuth={() => {
           setIsCartOpen(false);
+          setIsAuthOpen(true);
+        }}
+      />
+
+      {/* Slide-over Profile Drawer (Zepto Style) */}
+      <ProfileDrawer
+        isOpen={isProfileOpen}
+        onClose={() => setIsProfileOpen(false)}
+        onOpenAuth={() => {
+          setIsProfileOpen(false);
           setIsAuthOpen(true);
         }}
       />

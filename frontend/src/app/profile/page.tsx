@@ -49,7 +49,17 @@ export default function UserProfilePage() {
   const [isSavingAddress, setIsSavingAddress] = useState(false);
 
   useEffect(() => {
-    if (!isLoggedIn) {
+    // Check if session exists in localStorage before redirecting to avoid kicking out during refresh
+    let sessionPhone = user.phone;
+    try {
+      const saved = localStorage.getItem('trug_user_session');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.phone) sessionPhone = parsed.phone;
+      }
+    } catch {}
+
+    if (!isLoggedIn && !sessionPhone) {
       router.push('/login');
       return;
     }
@@ -59,7 +69,7 @@ export default function UserProfilePage() {
     setNewRecipient(user.name || '');
 
     setIsLoading(true);
-    fetch(`/api/customer?phone=${encodeURIComponent(user.phone || '+919392449721')}`)
+    fetch(`/api/customer?phone=${encodeURIComponent(sessionPhone || '+919392449721')}`)
       .then((r) => r.json())
       .then((data) => {
         setIsLoading(false);
@@ -156,7 +166,8 @@ export default function UserProfilePage() {
     }
   };
 
-  if (!isLoggedIn) return null;
+  const hasSession = isLoggedIn || (typeof window !== 'undefined' && !!localStorage.getItem('trug_user_session'));
+  if (!hasSession && !isLoading) return null;
 
   return (
     <div className="min-h-screen bg-[#FAF5F0] text-[#302B28] py-8 sm:py-12">
@@ -611,7 +622,4 @@ export default function UserProfilePage() {
             </form>
           </div>
         </div>
-      )}
-    </div>
-  );
-}
+      )
