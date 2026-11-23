@@ -133,33 +133,33 @@ export default function Header({ onOpenCart, onOpenAuth, onOpenProfile }: Header
         {/* Main Navbar */}
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-2 sm:gap-4">
           {/* Logo & Locality */}
-          <div className="flex items-center gap-2 sm:gap-6">
-            <Link href="/" className="flex items-center gap-1.5 sm:gap-2 group">
-              <div className="relative w-9 h-9 sm:w-12 sm:h-12 rounded-xl overflow-hidden shadow-xs border border-[#F1E6DC] bg-[#FAF5F0] shrink-0 group-hover:scale-105 transition-transform duration-200">
+          <div className="flex items-center gap-2 sm:gap-6 min-w-0">
+            <Link href="/" className="flex items-center gap-1.5 sm:gap-2 group shrink-0">
+              <div className="relative w-9 h-9 sm:w-11 sm:h-11 rounded-xl overflow-hidden shadow-xs border border-[#F1E6DC] bg-[#FAF5F0] shrink-0 group-hover:scale-105 transition-transform duration-200">
                 <Image
                   src="/logo.png"
                   alt="TRUG by Focsera"
                   fill
-                  sizes="(max-width: 640px) 36px, 48px"
+                  sizes="(max-width: 640px) 36px, 44px"
                   priority
                   className="object-cover"
                 />
               </div>
               <div className="flex flex-col">
-                <span className="text-xl sm:text-2xl font-black tracking-tight text-[#302B28] flex items-center leading-none">
+                <span className="text-lg sm:text-2xl font-black tracking-tight text-[#302B28] flex items-center leading-none">
                   <span className="text-[#D97A5B]">trug</span>
                   <span className="text-[#302B28]">.</span>
                 </span>
-                <span className="text-[9px] sm:text-[10px] tracking-wider lowercase font-semibold text-[#6B5145] leading-tight mt-0.5">
+                <span className="text-[8px] sm:text-[10px] tracking-wider lowercase font-semibold text-[#6B5145] leading-tight mt-0.5">
                   by focsera
                 </span>
               </div>
             </Link>
 
-            {/* Zepto-Style Location Selector Pill */}
+            {/* Zepto-Style Location Selector Pill (Desktop/Tablet) */}
             <button
               onClick={() => setShowLocationModal(true)}
-              className="flex items-center gap-1.5 sm:gap-2 bg-[#F1E6DC]/90 hover:bg-[#F1E6DC] px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-full text-xs font-semibold text-[#302B28] transition border border-[#6B5145]/15 max-w-[170px] sm:max-w-[260px] shadow-2xs cursor-pointer"
+              className="hidden sm:flex items-center gap-1.5 sm:gap-2 bg-[#F1E6DC]/90 hover:bg-[#F1E6DC] px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-full text-xs font-semibold text-[#302B28] transition border border-[#6B5145]/15 max-w-[200px] sm:max-w-[260px] shadow-2xs cursor-pointer truncate"
               title="Change Delivery Locality"
             >
               <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-[#D97A5B] text-white flex items-center justify-center shrink-0">
@@ -175,7 +175,7 @@ export default function Header({ onOpenCart, onOpenAuth, onOpenProfile }: Header
             </button>
           </div>
 
-          {/* Quick Search Bar */}
+          {/* Quick Search Bar (Desktop) */}
           <form
             onSubmit={handleSearchSubmit}
             className="hidden lg:flex flex-1 max-w-md mx-4 relative"
@@ -191,7 +191,7 @@ export default function Header({ onOpenCart, onOpenAuth, onOpenProfile }: Header
           </form>
 
           {/* Nav Links & Actions */}
-          <div className="flex items-center gap-3 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-4 shrink-0">
             <Link
               href="/shops"
               className="hidden sm:inline-flex text-xs font-bold uppercase tracking-wider text-[#6B5145] hover:text-[#D97A5B] px-2 py-1 transition"
@@ -207,11 +207,11 @@ export default function Header({ onOpenCart, onOpenAuth, onOpenProfile }: Header
               Daily Subscriptions
             </Link>
 
-            {/* Zepto-Style Login / Account Button */}
+            {/* Zepto-Style Login / Account Button (Desktop & Tablet) */}
             {isLoggedIn ? (
               <button
                 onClick={onOpenProfile}
-                className="flex items-center gap-2 bg-[#F1E6DC]/90 hover:bg-[#F1E6DC] px-3.5 py-2 rounded-full border border-[#6B5145]/15 text-xs font-bold text-[#302B28] transition shadow-2xs cursor-pointer"
+                className="hidden sm:flex items-center gap-2 bg-[#F1E6DC]/90 hover:bg-[#F1E6DC] px-3.5 py-2 rounded-full border border-[#6B5145]/15 text-xs font-bold text-[#302B28] transition shadow-2xs cursor-pointer"
                 title="Account & Addresses"
               >
                 <div className="w-5 h-5 rounded-full bg-[#D97A5B] text-white flex items-center justify-center text-[10px] font-black">
@@ -222,7 +222,7 @@ export default function Header({ onOpenCart, onOpenAuth, onOpenProfile }: Header
             ) : (
               <button
                 onClick={onOpenAuth}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold tracking-wide border border-[#D97A5B] text-[#D97A5B] hover:bg-[#D97A5B] hover:text-white transition shadow-2xs cursor-pointer"
+                className="hidden sm:flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold tracking-wide border border-[#D97A5B] text-[#D97A5B] hover:bg-[#D97A5B] hover:text-white transition shadow-2xs cursor-pointer"
               >
                 <UserIcon className="w-3.5 h-3.5" />
                 <span>Login</span>
@@ -232,7 +232,7 @@ export default function Header({ onOpenCart, onOpenAuth, onOpenProfile }: Header
             {/* Zepto-Style Cart CTA Button */}
             <button
               onClick={onOpenCart}
-              className="flex items-center gap-2 bg-[#D97A5B] hover:bg-[#c2694d] text-white px-4 py-2.5 rounded-full font-bold text-xs tracking-wide shadow-xs transition"
+              className="flex items-center gap-1.5 sm:gap-2 bg-[#D97A5B] hover:bg-[#c2694d] text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-full font-bold text-xs tracking-wide shadow-xs transition cursor-pointer"
             >
               <ShoppingBag className="w-4 h-4" />
               <span className="hidden sm:inline">My Basket</span>
@@ -246,25 +246,30 @@ export default function Header({ onOpenCart, onOpenAuth, onOpenProfile }: Header
             {/* Mobile menu trigger */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 text-[#302B28] hover:text-[#D97A5B]"
+              className="md:hidden p-2 text-[#302B28] hover:text-[#D97A5B] rounded-lg cursor-pointer"
               aria-label="Toggle menu"
             >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
         </div>
 
-        {/* Mobile Search & Sub-bar */}
-        <div className="md:hidden px-4 pb-3 flex flex-col gap-2">
+        {/* Mobile Search & Delivering To Bar */}
+        <div className="sm:hidden px-3 pb-3 flex flex-col gap-2">
           <button
             onClick={() => setShowLocationModal(true)}
-            className="flex items-center justify-between bg-[#F1E6DC]/80 px-3.5 py-2 rounded-xl text-xs font-medium text-[#302B28]"
+            className="flex items-center justify-between bg-[#F1E6DC]/90 hover:bg-[#F1E6DC] px-3 py-2 rounded-xl text-xs font-semibold text-[#302B28] border border-[#6B5145]/15 shadow-2xs"
           >
             <div className="flex items-center gap-2 truncate">
               <MapPin className="w-3.5 h-3.5 text-[#D97A5B] shrink-0" />
-              <span className="truncate">{currentLocality}</span>
+              <div className="flex flex-col text-left truncate">
+                <span className="text-[8px] font-black text-[#D97A5B] uppercase tracking-wider leading-none">
+                  Delivering to
+                </span>
+                <span className="truncate text-[11px] font-bold leading-tight mt-0.5">{currentLocality}</span>
+              </div>
             </div>
-            <ChevronDown className="w-3 h-3 text-[#6B5145] shrink-0" />
+            <ChevronDown className="w-3.5 h-3.5 text-[#6B5145] shrink-0" />
           </button>
 
           <form onSubmit={handleSearchSubmit} className="relative">
@@ -273,7 +278,7 @@ export default function Header({ onOpenCart, onOpenAuth, onOpenProfile }: Header
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search local shops or products..."
-              className="w-full pl-9 pr-4 py-2 bg-white text-xs text-[#302B28] rounded-xl border border-[#F1E6DC] focus:outline-none focus:border-[#D97A5B]"
+              className="w-full pl-9 pr-4 py-2 bg-white text-xs text-[#302B28] rounded-xl border border-[#F1E6DC] focus:outline-none focus:border-[#D97A5B] shadow-2xs"
             />
             <Search className="w-3.5 h-3.5 text-[#6B5145] absolute left-3 top-1/2 -translate-y-1/2" />
           </form>
