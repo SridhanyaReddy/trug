@@ -92,10 +92,12 @@ export async function getLiveVendors(): Promise<Vendor[]> {
 
   if (rows && rows.length > 0) {
     return rows.map((r: any) => {
-      // Pick shop cover or use Focsera storage image
+      // Sourced directly from Cloudflare R2 trug-app-images and trug-catalogue-images
       const coverImage = r.shop_slug.includes('daily-loaf')
         ? 'https://pub-cdf20c31647144a1bc202a2fe4d80867.r2.dev/v1/bread-adc3a845c897.jpg'
-        : 'https://pub-cdf20c31647144a1bc202a2fe4d80867.r2.dev/v1/tomato-d498d2156b91.jpg';
+        : r.shop_slug.includes('orchard')
+        ? 'https://pub-a5da526cc1874bb7aa974a79fb71fd50.r2.dev/v1/market-hero-d7163fa9b086.jpg'
+        : 'https://pub-a5da526cc1874bb7aa974a79fb71fd50.r2.dev/v1/neighbourhood-shop-6a320c3a2811.jpg';
 
       return {
         id: r.location_id,
