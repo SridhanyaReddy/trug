@@ -384,29 +384,46 @@ export default function Header({ onOpenCart, onOpenAuth, onOpenProfile }: Header
               </div>
             </div>
 
-            {/* Manual Location Search Bar */}
-            <div className="relative">
+            {/* Manual Location Search Bar with Form Submission & Live Auto-Suggestions */}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (manualLocationQuery.trim()) {
+                  setLocality(manualLocationQuery.trim());
+                  try {
+                    localStorage.setItem(
+                      'trug_user_geo',
+                      JSON.stringify({
+                        locality: manualLocationQuery.trim(),
+                        address: manualLocationQuery.trim(),
+                        lat: 17.4319,
+                        lng: 78.4073,
+                      })
+                    );
+                  } catch {}
+                  setManualLocationQuery('');
+                  setShowLocationModal(false);
+                }
+              }}
+              className="relative"
+            >
               <Search className="w-4 h-4 text-[#6B5145] absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 value={manualLocationQuery}
                 onChange={(e) => setManualLocationQuery(e.target.value)}
-                placeholder="Search area, apartment, street or locality..."
-                className="w-full pl-9 pr-4 py-2.5 bg-white text-xs font-semibold text-[#302B28] placeholder-[#6B5145]/60 rounded-xl border border-[#F1E6DC] focus:outline-hidden focus:border-[#D97A5B]"
+                placeholder="Type your area, building, street, or city (Press Enter)..."
+                className="w-full pl-9 pr-24 py-3 bg-white text-xs font-semibold text-[#302B28] placeholder-[#6B5145]/70 rounded-2xl border border-[#F1E6DC] focus:outline-hidden focus:border-[#D97A5B] shadow-2xs"
+                autoFocus
               />
-              {manualLocationQuery.trim() && (
-                <button
-                  onClick={() => {
-                    setLocality(manualLocationQuery.trim());
-                    setManualLocationQuery('');
-                    setShowLocationModal(false);
-                  }}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 px-2.5 py-1 bg-[#302B28] text-white text-[10px] font-bold rounded-lg cursor-pointer"
-                >
-                  Set Location
-                </button>
-              )}
-            </div>
+              <button
+                type="submit"
+                disabled={!manualLocationQuery.trim()}
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 px-3.5 py-1.5 bg-[#D97A5B] hover:bg-[#c2694d] text-white text-[11px] font-extrabold rounded-xl transition cursor-pointer disabled:opacity-40 shadow-xs"
+              >
+                Set Location
+              </button>
+            </form>
 
             {/* Popular Localities List */}
             <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
