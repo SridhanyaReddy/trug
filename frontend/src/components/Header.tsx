@@ -17,9 +17,11 @@ import {
   Navigation,
   Crosshair,
   Check,
+  Compass,
 } from 'lucide-react';
 import Image from 'next/image';
 import { useCart } from '@/context/CartContext';
+import RealMapLocationPicker from '@/components/RealMapLocationPicker';
 
 interface HeaderProps {
   onOpenCart?: () => void;
@@ -39,6 +41,7 @@ export default function Header({ onOpenCart, onOpenAuth, onOpenProfile }: Header
   } = useCart();
 
   const [showLocationModal, setShowLocationModal] = useState(false);
+  const [showRealMapPicker, setShowRealMapPicker] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [manualLocationQuery, setManualLocationQuery] = useState('');
@@ -313,6 +316,23 @@ export default function Header({ onOpenCart, onOpenAuth, onOpenProfile }: Header
               </button>
             </div>
 
+            {/* Real Map Location Picker Trigger */}
+            <button
+              onClick={() => {
+                setShowLocationModal(false);
+                setShowRealMapPicker(true);
+              }}
+              className="w-full py-3 px-4 rounded-2xl bg-[#302B28] hover:bg-black text-white text-xs font-bold transition flex items-center justify-between shadow-xs cursor-pointer"
+            >
+              <div className="flex items-center gap-2.5">
+                <Compass className="w-4 h-4 text-[#D97A5B]" />
+                <span>Select on Live Real Map</span>
+              </div>
+              <span className="text-[10px] bg-[#D97A5B] text-white px-2 py-0.5 rounded-full uppercase tracking-wider font-extrabold">
+                Real Map
+              </span>
+            </button>
+
             {/* GPS Auto-Detect Button (Zepto style) */}
             <button
               onClick={handleDetectGpsLocation}
@@ -408,6 +428,27 @@ export default function Header({ onOpenCart, onOpenAuth, onOpenProfile }: Header
           </div>
         </div>
       )}
+
+      {/* Real Map Location Picker Modal */}
+      <RealMapLocationPicker
+        isOpen={showRealMapPicker}
+        onClose={() => setShowRealMapPicker(false)}
+        initialLocality={currentLocality}
+        onSelectLocation={(loc) => {
+          setLocality(loc.locality);
+          try {
+            localStorage.setItem(
+              'trug_user_geo',
+              JSON.stringify({
+                locality: loc.locality,
+                address: loc.address,
+                lat: loc.lat,
+                lng: loc.lng,
+              })
+            );
+          } catch {}
+        }}
+      />
     </>
   );
 }

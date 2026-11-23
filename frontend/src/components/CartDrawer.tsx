@@ -17,8 +17,10 @@ import {
   Home,
   Briefcase,
   ChevronRight,
+  Compass,
 } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
+import RealMapLocationPicker from '@/components/RealMapLocationPicker';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -43,6 +45,13 @@ export default function CartDrawer({ isOpen, onClose, onOpenAuth }: CartDrawerPr
   const [paymentMethod, setPaymentMethod] = useState<'cod' | 'upi'>('cod');
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState<any | null>(null);
+  const [showRealMapPicker, setShowRealMapPicker] = useState(false);
+  const [customMapLocation, setCustomMapLocation] = useState<{
+    address: string;
+    locality: string;
+    lat: number;
+    lng: number;
+  } | null>(null);
 
   // Fetch user addresses from live DB when logged in
   useEffect(() => {
@@ -277,15 +286,40 @@ export default function CartDrawer({ isOpen, onClose, onOpenAuth }: CartDrawerPr
                           <MapPin className="w-3 h-3 text-[#D97A5B]" />
                           Delivery Address
                         </span>
-                        {!isLoggedIn && (
+                        <div className="flex items-center gap-2">
                           <button
-                            onClick={onOpenAuth}
-                            className="text-xs font-bold text-[#D97A5B] hover:underline cursor-pointer"
+                            type="button"
+                            onClick={() => setShowRealMapPicker(true)}
+                            className="text-[11px] font-bold text-[#D97A5B] hover:text-[#c2694d] flex items-center gap-1 cursor-pointer"
                           >
-                            Login to Select
+                            <Compass className="w-3 h-3" />
+                            <span>Pin on Real Map</span>
                           </button>
-                        )}
+                          {!isLoggedIn && (
+                            <button
+                              onClick={onOpenAuth}
+                              className="text-xs font-bold text-[#D97A5B] hover:underline cursor-pointer"
+                            >
+                              Login
+                            </button>
+                          )}
+                        </div>
                       </div>
+
+                      {customMapLocation && (
+                        <div className="p-2.5 rounded-xl bg-[#FAF5F0] border border-[#D97A5B] text-xs">
+                          <div className="flex items-center justify-between">
+                            <span className="font-extrabold text-[#D97A5B] text-[10px] uppercase">
+                              Pinned via Real Map
+                            </span>
+                            <span className="text-[10px] font-bold text-[#6B5145]">
+                              {customMapLocation.lat.toFixed(4)}, {customMapLocation.lng.toFixed(4)}
+                            </span>
+                          </div>
+                          <p className="font-bold text-[#302B28] mt-0.5">{customMapLocation.locality}</p>
+                          <p className="text-[11px] text-[#6B5145] truncate mt-0.5">{customMapLocation.address}</p>
+                        </div>
+                      )}
 
                       {isLoggedIn ? (
                         addresses.length > 0 ? (
@@ -432,6 +466,16 @@ export default function CartDrawer({ isOpen, onClose, onOpenAuth }: CartDrawerPr
           )}
         </div>
       </div>
+
+      {/* Real Map Location Picker Modal */}
+      <RealMapLocationPicker
+        isOpen={showRealMapPicker}
+        onClose={() => setShowRealMapPicker(false)}
+        initialLocality={customMapLocation?.locality || user.addresses?.[0]?.locality || 'Jubilee Hills, Hyderabad'}
+        onSelectLocation={(loc) => {
+          setCustomMapLocation(loc);
+        }}
+      />
     </div>
   );
 }
