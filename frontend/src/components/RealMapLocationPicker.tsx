@@ -96,14 +96,14 @@ export default function RealMapLocationPicker({
 
     const fallbackToIp = async () => {
       try {
-        setStatusMessage('Browser GPS blocked. Detecting city via network...');
+        setStatusMessage('GPS blocked in browser. Locating via network...');
         const res = await fetch('/api/geo/ip');
         if (res.ok) {
           const data = await res.json();
           if (data && data.latitude && data.longitude) {
             updateCoordinates(data.latitude, data.longitude);
             setIsDetecting(false);
-            setStatusMessage(`Located near ${data.locality}. Pan or search to set doorstep.`);
+            setStatusMessage(`Located: ${data.locality}. Allow location in Chrome lock icon for exact doorstep GPS.`);
             return;
           }
         }
@@ -126,10 +126,13 @@ export default function RealMapLocationPicker({
         setIsDetecting(false);
         reverseGeocode(currentLat, currentLng);
       },
-      () => {
+      (err) => {
+        if (err.code === 1) {
+          setStatusMessage('Browser location permission denied. Click lock icon in URL bar to Allow GPS.');
+        }
         fallbackToIp();
       },
-      { enableHighAccuracy: true, timeout: 6000, maximumAge: 0 }
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
     );
   };
 
@@ -219,37 +222,62 @@ export default function RealMapLocationPicker({
         </div>
 
         {/* Map Search Bar & GPS Auto Detect Bar */}
-        <div className="p-4 bg-[#FAF5F0] border-b border-[#F1E6DC] flex flex-col sm:flex-row gap-2.5">
-          <form onSubmit={handleSearchLocation} className="relative flex-1">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search apartment, road, landmark, or area..."
-              className="w-full pl-9 pr-20 py-2.5 bg-white text-xs font-semibold text-[#302B28] placeholder-[#6B5145]/70 rounded-2xl border border-[#F1E6DC] focus:outline-hidden focus:border-[#D97A5B] shadow-2xs"
-            />
-            <Search className="w-4 h-4 text-[#6B5145] absolute left-3 top-1/2 -translate-y-1/2" />
-            <button
-              type="submit"
-              disabled={isGeocoding}
-              className="absolute right-1.5 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-[#302B28] hover:bg-black text-white text-[11px] font-bold rounded-xl transition cursor-pointer disabled:opacity-50"
-            >
-              Search
-            </button>
-          </form>
+        <div className="p-4 bg-[#FAF5F0] border-b border-[#F1E6DC] space-y-2.5">
+          <div className="flex flex-col sm:flex-row gap-2.5">
+            <form onSubmit={handleSearchLocation} className="relative flex-1">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search Dundigal, apartment, road, or landmark..."
+                className="w-full pl-9 pr-20 py-2.5 bg-white text-xs font-semibold text-[#302B28] placeholder-[#6B5145]/70 rounded-2xl border border-[#F1E6DC] focus:outline-hidden focus:border-[#D97A5B] shadow-2xs"
+              />
+              <Search className="w-4 h-4 text-[#6B5145] absolute left-3 top-1/2 -translate-y-1/2" />
+              <button
+                type="submit"
+                disabled={isGeocoding}
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-[#302B28] hover:bg-black text-white text-[11px] font-bold rounded-xl transition cursor-pointer disabled:opacity-50"
+              >
+                Search
+              </button>
+            </form>
 
-          <button
-            onClick={handleDetectGps}
-            disabled={isDetecting}
-            className="flex items-center justify-center gap-2 bg-[#D97A5B] hover:bg-[#c2694d] text-white px-4 py-2.5 rounded-2xl text-xs font-bold transition shadow-xs cursor-pointer shrink-0 disabled:opacity-60"
-          >
-            {isDetecting ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Crosshair className="w-4 h-4" />
-            )}
-            <span>{isDetecting ? 'Locating...' : 'Detect GPS'}</span>
-          </button>
+            <button
+              onClick={handleDetectGps}
+              disabled={isDetecting}
+              className="flex items-center justify-center gap-2 bg-[#D97A5B] hover:bg-[#c2694d] text-white px-4 py-2.5 rounded-2xl text-xs font-bold transition shadow-xs cursor-pointer shrink-0 disabled:opacity-60"
+            >
+              {isDetecting ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Crosshair className="w-4 h-4" />
+              )}
+              <span>{isDetecting ? 'Locating...' : 'Detect GPS'}</span>
+            </button>
+          </div>
+
+          {/* Quick Locality Jump Chips */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 text-[11px]">
+            <span className="text-[10px] uppercase font-black tracking-wider text-[#6B5145] shrink-0 mr-1">
+              Quick Pick:
+            </span>
+            {[
+              { name: 'Dundigal, Hyderabad', lat: 17.5878, lng: 78.4312 },
+              { name: 'Gandimaisamma, Dundigal', lat: 17.5750, lng: 78.4344 },
+              { name: 'Bowenpally / Secunderabad', lat: 17.4754, lng: 78.4901 },
+              { name: 'Kukatpally, Hyderabad', lat: 17.4938, lng: 78.3995 },
+              { name: 'Jubilee Hills, Hyderabad', lat: 17.4319, lng: 78.4073 },
+            ].map((chip) => (
+              <button
+                key={chip.name}
+                type="button"
+                onClick={() => updateCoordinates(chip.lat, chip.lng)}
+                className="px-2.5 py-1 rounded-full bg-white hover:bg-[#F1E6DC] text-[#302B28] border border-[#F1E6DC] text-[10px] font-bold whitespace-nowrap transition cursor-pointer shadow-2xs"
+              >
+                {chip.name.split(',')[0]}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Interactive Real Map Area */}
