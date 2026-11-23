@@ -11,7 +11,7 @@ import {
   Compass,
   AlertCircle,
   Loader2,
-  Layers,
+  ExternalLink,
 } from 'lucide-react';
 
 interface RealMapLocationPickerProps {
@@ -41,7 +41,6 @@ export default function RealMapLocationPicker({
   const [isDetecting, setIsDetecting] = useState<boolean>(false);
   const [isGeocoding, setIsGeocoding] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [mapEngine, setMapEngine] = useState<'google' | 'osm'>('google');
   const [addressDetails, setAddressDetails] = useState<{
     display: string;
     locality: string;
@@ -58,38 +57,25 @@ export default function RealMapLocationPicker({
 
   const reverseGeocode = async (latitude: number, longitude: number) => {
     setIsGeocoding(true);
-    setStatusMessage('Fetching live street address...');
+    setStatusMessage('Fetching live address from map...');
     try {
-      const res = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`
-      );
+      const res = await fetch(`/api/geo/geocode?action=reverse&lat=${latitude}&lon=${longitude}`);
       if (res.ok) {
         const data = await res.json();
-        const addr = data.address || {};
-        const road = addr.road || addr.pedestrian || addr.suburb || '';
-        const suburb =
-          addr.suburb ||
-          addr.neighbourhood ||
-          addr.residential ||
-          addr.city_district ||
-          '';
-        const city = addr.city || addr.town || addr.state_district || 'Hyderabad';
-        const locality = suburb ? `${suburb}, ${city}` : city;
-        const display = data.display_name
-          ? data.display_name.split(',').slice(0, 4).join(', ')
-          : locality;
-
-        setAddressDetails({
-          display,
-          locality,
-          road,
-          suburb,
-          city,
-        });
-        setStatusMessage(null);
+        if (data.success) {
+          setAddressDetails({
+            display: data.display || `${data.locality || 'Current Area'}`,
+            locality: data.locality || 'Hyderabad',
+            road: data.road,
+            suburb: data.suburb,
+            city: data.city,
+          });
+          setStatusMessage(null);
+          return;
+        }
       }
     } catch {
-      setStatusMessage('Address lookup completed.');
+      setStatusMessage('Address lookup complete.');
     } finally {
       setIsGeocoding(false);
     }
@@ -101,29 +87,29 @@ export default function RealMapLocationPicker({
     if (geocodeTimeoutRef.current) clearTimeout(geocodeTimeoutRef.current);
     geocodeTimeoutRef.current = setTimeout(() => {
       reverseGeocode(newLat, newLng);
-    }, 600);
+    }, 500);
   };
 
   const handleDetectGps = () => {
     setIsDetecting(true);
-    setStatusMessage('Acquiring location...');
+    setStatusMessage('Locating your position...');
 
     const fallbackToIp = async () => {
       try {
-        setStatusMessage('GPS permission restricted. Locating your area via network...');
+        setStatusMessage('Browser GPS blocked. Detecting city via network...');
         const res = await fetch('/api/geo/ip');
         if (res.ok) {
           const data = await res.json();
           if (data && data.latitude && data.longitude) {
             updateCoordinates(data.latitude, data.longitude);
             setIsDetecting(false);
-            setStatusMessage(`Located near ${data.locality}. Pan or search to set your exact doorstep.`);
+            setStatusMessage(`Located near ${data.locality}. Pan or search to set doorstep.`);
             return;
           }
         }
       } catch {}
       setIsDetecting(false);
-      setStatusMessage('Location permission blocked. Search or pan the real map to pin your doorstep.');
+      setStatusMessage('Please search or pan the map to set your delivery doorstep.');
     };
 
     if (!navigator.geolocation) {
@@ -156,33 +142,27 @@ export default function RealMapLocationPicker({
 
     try {
       const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-          searchQuery.trim()
-        )}&limit=1`
+        `/api/geo/geocode?action=search&q=${encodeURIComponent(searchQuery.trim())}`
       );
       if (res.ok) {
-        const results = await res.json();
-        if (results && results.length > 0) {
-          const item = results[0];
-          const newLat = parseFloat(item.lat);
-          const newLng = parseFloat(item.lon);
-          updateCoordinates(newLat, newLng);
+        const json = await res.json();
+        if (json.success && json.results && json.results.length > 0) {
+          const item = json.results[0];
+          updateCoordinates(item.lat, item.lng);
           setStatusMessage(null);
-        } else {
-          // If nominatim returns empty, still allow direct setting of the custom locality
-          setAddressDetails({
-            display: searchQuery.trim(),
-            locality: searchQuery.trim(),
-          });
-          setStatusMessage(`Selected "${searchQuery.trim()}". You can confirm or pan the pin.`);
+          return;
         }
       }
+      setAddressDetails({
+        display: searchQuery.trim(),
+        locality: searchQuery.trim(),
+      });
+      setStatusMessage(`Selected "${searchQuery.trim()}". You can confirm or pan the pin.`);
     } catch {
       setAddressDetails({
         display: searchQuery.trim(),
         locality: searchQuery.trim(),
       });
-      setStatusMessage(`Selected "${searchQuery.trim()}".`);
     } finally {
       setIsGeocoding(false);
     }
@@ -203,15 +183,8 @@ export default function RealMapLocationPicker({
 
   if (!isOpen) return null;
 
-  // Real Google Maps Embed URL (Standard Embed Mode - Works globally with live satellite / terrain)
-  const googleMapEmbedUrl = `https://maps.google.com/maps?q=${lat},${lng}&hl=en&z=17&output=embed`;
-  
-  // Real OpenStreetMap Embed URL
-  const bboxDelta = 0.005;
-  const bbox = `${lng - bboxDelta},${lat - bboxDelta},${lng + bboxDelta},${lat + bboxDelta}`;
-  const osmEmbedMapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lng}`;
-
-  const currentEmbedUrl = mapEngine === 'google' ? googleMapEmbedUrl : osmEmbedMapUrl;
+  // Real Google Maps Embed URL - standard interactive maps preview with road network & pins
+  const googleMapsUrl = `https://maps.google.com/maps?q=${lat},${lng}&hl=en&z=16&output=embed`;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
@@ -225,9 +198,9 @@ export default function RealMapLocationPicker({
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="font-black text-base sm:text-lg text-[#302B28] leading-tight">
-                  Real Google Maps
+                  Google Maps Delivery Pin
                 </h3>
-                <span className="text-[10px] bg-[#D97A5B] text-white font-extrabold uppercase px-2 py-0.5 rounded-full tracking-wider">
+                <span className="text-[10px] bg-[#D97A5B] text-white font-black uppercase px-2 py-0.5 rounded-full tracking-wider">
                   Live
                 </span>
               </div>
@@ -237,23 +210,12 @@ export default function RealMapLocationPicker({
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            {/* Toggle Engine */}
-            <button
-              onClick={() => setMapEngine(mapEngine === 'google' ? 'osm' : 'google')}
-              className="text-[10px] font-bold text-[#6B5145] hover:text-[#302B28] bg-[#FAF5F0] px-2.5 py-1.5 rounded-xl border border-[#F1E6DC] flex items-center gap-1.5 cursor-pointer"
-              title="Toggle Map Engine"
-            >
-              <Layers className="w-3.5 h-3.5 text-[#D97A5B]" />
-              <span>{mapEngine === 'google' ? 'Google Maps' : 'OpenStreetMap'}</span>
-            </button>
-            <button
-              onClick={onClose}
-              className="p-2 text-[#6B5145] hover:text-[#302B28] rounded-full hover:bg-[#FAF5F0] transition cursor-pointer"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
+          <button
+            onClick={onClose}
+            className="p-2 text-[#6B5145] hover:text-[#302B28] rounded-full hover:bg-[#FAF5F0] transition cursor-pointer"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
         {/* Map Search Bar & GPS Auto Detect Bar */}
@@ -263,7 +225,7 @@ export default function RealMapLocationPicker({
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search building, road, area, or landmark..."
+              placeholder="Search apartment, road, landmark, or area..."
               className="w-full pl-9 pr-20 py-2.5 bg-white text-xs font-semibold text-[#302B28] placeholder-[#6B5145]/70 rounded-2xl border border-[#F1E6DC] focus:outline-hidden focus:border-[#D97A5B] shadow-2xs"
             />
             <Search className="w-4 h-4 text-[#6B5145] absolute left-3 top-1/2 -translate-y-1/2" />
@@ -292,24 +254,24 @@ export default function RealMapLocationPicker({
 
         {/* Interactive Real Map Area */}
         <div className="relative w-full h-72 sm:h-84 bg-[#E5E3DF] overflow-hidden">
-          {/* Real Map Tiles Iframe */}
+          {/* Real Google Maps Iframe */}
           <iframe
-            key={currentEmbedUrl}
-            title="Real Time Delivery Map"
+            key={googleMapsUrl}
+            title="Google Maps Delivery Pin"
             width="100%"
             height="100%"
             frameBorder="0"
             scrolling="no"
             marginHeight={0}
             marginWidth={0}
-            src={currentEmbedUrl}
+            src={googleMapsUrl}
             className="w-full h-full border-0 filter saturate-105"
           />
 
           {/* Central Delivery Pin Marker Overlay */}
           <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-10 -translate-y-4">
             <div className="flex flex-col items-center animate-bounce duration-700">
-              <div className="bg-[#302B28] text-white text-[10px] font-black uppercase px-2 py-0.5 rounded-full shadow-lg border border-white/30 tracking-wider">
+              <div className="bg-[#302B28] text-white text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full shadow-lg border border-white/30 tracking-wider">
                 Order Delivery Doorstep
               </div>
               <div className="w-8 h-8 rounded-full bg-[#D97A5B] border-2 border-white shadow-xl flex items-center justify-center text-white mt-1">
@@ -396,7 +358,7 @@ export default function RealMapLocationPicker({
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-[10px] font-extrabold uppercase tracking-wider text-[#D97A5B]">
-                Confirmed Delivery Area
+                Selected Delivery Area
               </div>
               <div className="text-sm font-extrabold text-[#302B28] truncate mt-0.5">
                 {addressDetails.locality}

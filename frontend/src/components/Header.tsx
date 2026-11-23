@@ -84,26 +84,20 @@ export default function Header({ onOpenCart, onOpenAuth, onOpenProfile }: Header
         const { latitude, longitude } = pos.coords;
         try {
           const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+            `/api/geo/geocode?action=reverse&lat=${latitude}&lon=${longitude}`
           );
           if (res.ok) {
             const data = await res.json();
-            const sub =
-              data.address?.suburb ||
-              data.address?.neighbourhood ||
-              data.address?.residential ||
-              data.address?.city_district ||
-              'Current Location';
-            const city = data.address?.city || data.address?.town || 'Hyderabad';
-            const detectedName = `${sub}, ${city}`;
-            setLocality(detectedName);
-            setIsDetectingLocation(false);
-            setLocationStatus(`Detected: ${detectedName}`);
-            setTimeout(() => {
-              setShowLocationModal(false);
-              setLocationStatus(null);
-            }, 800);
-            return;
+            if (data.success && data.locality) {
+              setLocality(data.locality);
+              setIsDetectingLocation(false);
+              setLocationStatus(`Detected: ${data.locality}`);
+              setTimeout(() => {
+                setShowLocationModal(false);
+                setLocationStatus(null);
+              }, 800);
+              return;
+            }
           }
         } catch {
           // fallback if reverse lookup fails
