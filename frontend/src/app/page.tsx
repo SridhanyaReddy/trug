@@ -19,6 +19,7 @@ import {
 import { useCart } from '@/context/CartContext';
 import ShopCard from '@/components/ShopCard';
 import ProductCard from '@/components/ProductCard';
+import FAQSection from '@/components/FAQSection';
 
 export default function HomePage() {
   const { vendors, products, categories, currentLocality, isLoadingDatabase } = useCart();
@@ -314,6 +315,9 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* 6. Frequently Asked Questions (FAQ) */}
+      <FAQSection />
     </div>
   );
 }
