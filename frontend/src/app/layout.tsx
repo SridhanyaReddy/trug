@@ -1,7 +1,15 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { CartProvider } from '@/context/CartContext';
 import AppShell from '@/components/AppShell';
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  themeColor: '#FAF5F0',
+};
 
 export const metadata: Metadata = {
   title: 'TRUG by Focsera | Hyperlocal Neighbourhood Commerce',
