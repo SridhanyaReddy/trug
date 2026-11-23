@@ -66,7 +66,7 @@ interface SharedAppContextType {
   // Customer Profile
   isLoggedIn: boolean;
   user: CustomerProfile;
-  login: (phoneOrEmail: string) => void;
+  login: (phoneOrEmail: string, customData?: Partial<CustomerProfile>) => void;
   logout: () => void;
   updateProfile: (updated: Partial<CustomerProfile>) => void;
   addAddress: (address: CustomerProfile['addresses'][0]) => void;
@@ -419,12 +419,26 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const getOrderById = useCallback((id: string) => orders.find((o) => o.id === id), [orders]);
 
   // Profile actions
-  const login = useCallback((phoneOrEmail: string) => {
+  const login = useCallback((phoneOrEmail: string, customData?: Partial<CustomerProfile>) => {
     setIsLoggedIn(true);
-    setUser((prev) => ({ ...prev, phone: phoneOrEmail }));
+    setUser((prev) => ({
+      ...prev,
+      phone: phoneOrEmail,
+      ...(customData?.name ? { name: customData.name } : {}),
+      ...(customData?.email ? { email: customData.email } : {}),
+      ...(customData?.id ? { id: customData.id } : {}),
+    }));
+    try {
+      localStorage.setItem('trug_user_session', JSON.stringify({ phone: phoneOrEmail, ...customData }));
+    } catch {}
   }, []);
 
-  const logout = useCallback(() => setIsLoggedIn(false), []);
+  const logout = useCallback(() => {
+    setIsLoggedIn(false);
+    try {
+      localStorage.removeItem('trug_user_session');
+    } catch {}
+  }, []);
 
   const updateProfile = useCallback((updated: Partial<CustomerProfile>) => {
     setUser((prev) => ({ ...prev, ...updated }));

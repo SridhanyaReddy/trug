@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, Smartphone, ArrowRight, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { X, Smartphone, ArrowRight, ShieldCheck, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 
 interface AuthModalProps {
@@ -16,22 +16,41 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
   const [step, setStep] = useState<'phone' | 'otp'>('phone');
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
-  const handleSendOtp = (e: React.FormEvent) => {
+  const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (phoneNumber.replace(/\D/g, '').length < 10) {
+    setErrorMessage(null);
+    const clean = phoneNumber.replace(/\D/g, '').slice(-10);
+    if (clean.length < 10) {
       showToast('Please enter a valid 10-digit mobile number');
       return;
     }
     setIsSubmitting(true);
-    // Simulating WhatsApp / SMS OTP challenge issuance adhering to Focsera's otp_start_service contract
-    setTimeout(() => {
+    try {
+      const res = await fetch('/api/auth/otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'send', phone: `+91${clean}` }),
+      });
+      const data = await res.json();
       setIsSubmitting(false);
+
+      if (!res.ok || !data.success) {
+        setErrorMessage(data.error || 'Failed to dispatch OTP. Please check the number.');
+        showToast(data.error || 'Failed to send OTP');
+        return;
+      }
+
       setStep('otp');
-      showToast(`Verification code sent to +91 ${phoneNumber.slice(-10)}`);
-    }, 700);
+      showToast(`Verification code sent to +91 ${clean}`);
+    } catch (err: any) {
+      setIsSubmitting(false);
+      setErrorMessage(err.message || 'Network error');
+      showToast('Network error while requesting OTP');
+    }
   };
 
   const handleOtpChange = (index: number, val: string) => {
@@ -42,26 +61,51 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
 
     // Auto focus next input
     if (val && index < 5) {
-      const nextInput = document.getElementById(`otp-box-${index + 1}`);
+      const nextInput = document.getElementById(`modal-otp-box-${index + 1}`);
       nextInput?.focus();
     }
   };
 
-  const handleVerifyOtp = (e: React.FormEvent) => {
+  const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage(null);
     const entered = otp.join('');
     if (entered.length < 6) {
       showToast('Please enter the complete 6-digit code');
       return;
     }
     setIsSubmitting(true);
-    setTimeout(() => {
+
+    try {
+      const clean = phoneNumber.replace(/\D/g, '').slice(-10);
+      const res = await fetch('/api/auth/otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'verify', phone: `+91${clean}`, code: entered }),
+      });
+      const data = await res.json();
       setIsSubmitting(false);
-      login(phoneNumber);
+
+      if (!res.ok || !data.success) {
+        setErrorMessage(data.error || 'Invalid verification code. Please check and retry.');
+        showToast(data.error || 'Verification failed');
+        return;
+      }
+
+      login(`+91${clean}`, {
+        name: data.user?.name || 'Resident',
+        email: data.user?.email || null,
+        id: data.user?.id,
+      });
+
       showToast('Successfully signed in to TRUG!');
       onClose();
       if (onSuccess) onSuccess();
-    }, 800);
+    } catch (err: any) {
+      setIsSubmitting(false);
+      setErrorMessage(err.message || 'Verification error');
+      showToast('Verification failed');
+    }
   };
 
   return (
@@ -69,10 +113,17 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
       <div className="bg-[#FAF5F0] border border-[#F1E6DC] rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl relative text-[#302B28]">
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 p-2 rounded-full hover:bg-[#F1E6DC] text-[#6B5145] transition"
+          className="absolute top-5 right-5 p-2 rounded-full hover:bg-[#F1E6DC] text-[#6B5145] transition cursor-pointer"
         >
           <X className="w-5 h-5" />
         </button>
+
+        {errorMessage && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+            <span>{errorMessage}</span>
+          </div>
+        )}
 
         {step === 'phone' ? (
           <div className="space-y-6">
@@ -84,7 +135,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
                 Enter Mobile Number
               </h2>
               <p className="text-xs text-[#6B5145]">
-                We will send an OTP via SMS/WhatsApp to verify your identity.
+                We will send an OTP via WhatsApp or SMS to verify your mobile number.
               </p>
             </div>
 
@@ -107,10 +158,10 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
               <button
                 type="submit"
                 disabled={isSubmitting || phoneNumber.length < 10}
-                className="w-full py-3.5 bg-[#D97A5B] hover:bg-[#c2694d] disabled:opacity-50 text-white rounded-2xl font-bold text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 shadow-md"
+                className="w-full py-3.5 bg-[#D97A5B] hover:bg-[#c2694d] disabled:opacity-50 text-white rounded-2xl font-bold text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 shadow-md cursor-pointer"
               >
                 {isSubmitting ? (
-                  <span>Sending Code...</span>
+                  <span>Sending WhatsApp OTP...</span>
                 ) : (
                   <>
                     <span>Continue</span>
@@ -138,7 +189,10 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
                 Sent to +91 {phoneNumber}{' '}
                 <button
                   type="button"
-                  onClick={() => setStep('phone')}
+                  onClick={() => {
+                    setErrorMessage(null);
+                    setStep('phone');
+                  }}
                   className="text-[#D97A5B] font-bold underline ml-1 cursor-pointer"
                 >
                   Edit
@@ -151,13 +205,13 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
                 {otp.map((digit, i) => (
                   <input
                     key={i}
-                    id={`otp-box-${i}`}
+                    id={`modal-otp-box-${i}`}
                     type="text"
                     inputMode="numeric"
                     maxLength={1}
                     value={digit}
                     onChange={(e) => handleOtpChange(i, e.target.value)}
-                    className="w-11 h-12 text-center text-lg font-bold bg-white border border-[#F1E6DC] rounded-xl focus:border-[#D97A5B] focus:outline-hidden shadow-xs"
+                    className="w-11 h-12 text-center text-lg font-bold bg-white border border-[#F1E6DC] rounded-xl focus:border-[#D97A5B] focus:outline-hidden shadow-xs text-[#302B28]"
                   />
                 ))}
               </div>
@@ -165,10 +219,10 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
               <button
                 type="submit"
                 disabled={isSubmitting || otp.some((d) => !d)}
-                className="w-full py-3.5 bg-[#D97A5B] hover:bg-[#c2694d] disabled:opacity-50 text-white rounded-2xl font-bold text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 shadow-md"
+                className="w-full py-3.5 bg-[#D97A5B] hover:bg-[#c2694d] disabled:opacity-50 text-white rounded-2xl font-bold text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 shadow-md cursor-pointer"
               >
                 {isSubmitting ? (
-                  <span>Verifying...</span>
+                  <span>Verifying Code...</span>
                 ) : (
                   <>
                     <CheckCircle2 className="w-4 h-4" />
