@@ -188,7 +188,7 @@ export default function HomePage() {
               </div>
               <h2 className="text-2xl sm:text-3xl font-black text-[#302B28]">Neighbourhood Stores</h2>
               <p className="text-xs sm:text-sm text-[#6B5145] mt-1">
-                Verified stores right in your locality ({currentLocality}).
+                Verified stores across all neighbourhoods & localities.
               </p>
             </div>
             <Link

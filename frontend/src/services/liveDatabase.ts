@@ -84,9 +84,8 @@ export async function getLiveVendors(): Promise<Vendor[]> {
     FROM trug.locations l
     JOIN trug.vendors v ON l.vendor_id = v.id
     LEFT JOIN trug.public_shop_details p ON l.id = p.location_id
-    WHERE l.active = true 
-      AND l.slug NOT IN ('trug-sample-orchard-market', 'trug-sample-daily-loaf')
-      AND l.name NOT IN ('Orchard Market', 'The Daily Loaf');
+    WHERE l.active = true
+    ORDER BY l.name ASC;
   `;
 
   const rows = await executeTrugSql(sql);
@@ -159,8 +158,6 @@ export async function getLiveProducts(): Promise<Product[]> {
     FROM trug.location_skus s
     JOIN trug.locations l ON s.location_id = l.id
     WHERE s.published = true
-      AND l.slug NOT IN ('trug-sample-orchard-market', 'trug-sample-daily-loaf')
-      AND l.name NOT IN ('Orchard Market', 'The Daily Loaf')
     ORDER BY s.name ASC;
   `;
 
