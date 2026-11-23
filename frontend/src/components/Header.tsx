@@ -52,7 +52,7 @@ export default function Header({ onOpenCart, onOpenAuth, onOpenProfile }: Header
         {/* Top Mini Bar: Neighbourhood assurance banner */}
         <div className="bg-[#6B5145] text-[#FAF5F0] text-xs py-2 px-4 text-center font-medium flex items-center justify-center gap-2">
           <Sparkles className="w-3.5 h-3.5 text-[#D97A5B]" />
-          <span>Hyperlocal direct-from-neighbourhood shops. Fresh daily essentials delivered to your doorstep.</span>
+          <span>Hyperlocal direct-from-neighbourhood shops. <strong>₹0 Delivery Fee on every order</strong>.</span>
         </div>
 
         {/* Main Navbar */}

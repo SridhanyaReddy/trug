@@ -110,7 +110,7 @@ export async function getLiveVendors(): Promise<Vendor[]> {
         deliveryTime: 'Same Day Delivery',
         distance: '0.8 km',
         minimumOrder: 50,
-        deliveryFee: (r.delivery_fee_paise || 2500) / 100,
+        deliveryFee: 0,
         isOpen: true,
         timings: '6:30 AM - 10:00 PM',
         address: {

@@ -411,7 +411,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         vendor: currentVendor,
         items: [],
         subtotal: 0,
-        deliveryFee: currentVendor.deliveryFee || 0,
+        deliveryFee: 0,
         total: 0,
         isMinOrderMet: false,
       };

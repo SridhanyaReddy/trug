@@ -64,9 +64,9 @@ export default function CartDrawer({ isOpen, onClose, onOpenAuth }: CartDrawerPr
   if (!isOpen) return null;
 
   const itemTotal = cartItems.reduce((sum, item) => sum + item.variant.price * item.quantity, 0);
-  const deliveryFee = itemTotal > 0 ? (itemTotal > 500 ? 0 : 25) : 0;
-  const platformFee = itemTotal > 0 ? 5 : 0;
-  const grandTotal = itemTotal + deliveryFee + platformFee;
+  const deliveryFee = 0; // TRUG Special Feature: Zero Delivery Fee Always
+  const platformFee = 0; // Zero hidden fees
+  const grandTotal = itemTotal;
 
   const selectedAddress = addresses.find((a) => a.id === selectedAddressId) || addresses[0] || null;
 
@@ -365,15 +365,16 @@ export default function CartDrawer({ isOpen, onClose, onOpenAuth }: CartDrawerPr
                         <span>Item Total</span>
                         <span className="font-semibold text-[#302B28]">₹{itemTotal}</span>
                       </div>
-                      <div className="flex justify-between text-[#6B5145]">
-                        <span>Delivery Partner Fee</span>
-                        <span className="font-semibold text-[#302B28]">
-                          {deliveryFee === 0 ? <span className="text-emerald-600 font-bold">FREE</span> : `₹${deliveryFee}`}
+                      <div className="flex justify-between text-[#6B5145] items-center">
+                        <span className="flex items-center gap-1.5 font-medium">
+                          Delivery Partner Fee
+                          <span className="bg-emerald-100 text-emerald-800 text-[10px] px-1.5 py-0.5 rounded-md font-extrabold uppercase tracking-wider">
+                            Special Feature
+                          </span>
                         </span>
-                      </div>
-                      <div className="flex justify-between text-[#6B5145]">
-                        <span>Platform Handling Fee</span>
-                        <span className="font-semibold text-[#302B28]">₹{platformFee}</span>
+                        <span className="text-emerald-600 font-black text-xs">
+                          FREE (₹0)
+                        </span>
                       </div>
                       <div className="border-t border-[#F1E6DC] pt-2 flex justify-between font-extrabold text-sm text-[#302B28]">
                         <span>To Pay</span>

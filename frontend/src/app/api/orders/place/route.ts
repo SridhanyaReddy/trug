@@ -72,9 +72,9 @@ export async function POST(req: Request) {
       };
     });
 
-    // Delivery fee is 0 if order > ₹500
-    const deliveryFeePaise = subtotalPaise > 50000 ? 0 : baseDeliveryFee;
-    const totalPaise = subtotalPaise + deliveryFeePaise;
+    // Free delivery is TRUG's special feature: always ₹0 delivery fee
+    const deliveryFeePaise = 0;
+    const totalPaise = subtotalPaise;
 
     // 5. Compute order_number (Max + 1)
     const maxOrderNumSql = `SELECT COALESCE(MAX(order_number), 16) + 1 as next_ord FROM trug.orders;`;
