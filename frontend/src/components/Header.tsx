@@ -49,19 +49,40 @@ export default function Header({ onOpenCart, onOpenAuth, onOpenProfile }: Header
   const [locationStatus, setLocationStatus] = useState<string | null>(null);
 
   const handleDetectGpsLocation = () => {
+    setIsDetectingLocation(true);
+    setLocationStatus('Detecting your location...');
+
+    const fallbackToIpLocation = async (reason?: string) => {
+      try {
+        setLocationStatus('Device GPS restricted. Detecting city via network...');
+        const res = await fetch('/api/geo/ip');
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.locality) {
+            setLocality(data.locality);
+            setIsDetectingLocation(false);
+            setLocationStatus(`Location detected: ${data.locality}`);
+            setTimeout(() => {
+              setShowLocationModal(false);
+              setLocationStatus(null);
+            }, 1200);
+            return;
+          }
+        }
+      } catch {}
+      setIsDetectingLocation(false);
+      setLocationStatus(reason || 'Could not auto-detect. Please choose below or on the map.');
+    };
+
     if (!navigator.geolocation) {
-      setLocationStatus('Geolocation is not supported by your browser.');
+      fallbackToIpLocation('Geolocation not supported by browser.');
       return;
     }
-
-    setIsDetectingLocation(true);
-    setLocationStatus('Acquiring precise GPS location...');
 
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         const { latitude, longitude } = pos.coords;
         try {
-          // Reverse geocode via open reverse geocoding API or fallback to coordinate-based locality
           const res = await fetch(
             `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
           );
@@ -92,10 +113,10 @@ export default function Header({ onOpenCart, onOpenAuth, onOpenProfile }: Header
         setShowLocationModal(false);
       },
       () => {
-        setIsDetectingLocation(false);
-        setLocationStatus('Permission denied. Please select your locality manually.');
+        // When device/browser permission is blocked or denied, seamlessly fallback to IP geolocation
+        fallbackToIpLocation('GPS permission denied. Found your city via network.');
       },
-      { timeout: 10000, enableHighAccuracy: true }
+      { timeout: 7000, enableHighAccuracy: true }
     );
   };
 

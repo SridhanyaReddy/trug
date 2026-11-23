@@ -104,15 +104,34 @@ export default function RealMapLocationPicker({
     }, 600);
   };
 
-  // GPS auto-detection using browser geolocation API
+  // GPS auto-detection using browser geolocation API with fallback to IP coordinates
   const handleDetectGps = () => {
+    setIsDetecting(true);
+    setStatusMessage('Acquiring location...');
+
+    const fallbackToIpCoordinates = async () => {
+      try {
+        setStatusMessage('GPS restricted in browser. Locating your city via network...');
+        const res = await fetch('/api/geo/ip');
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.latitude && data.longitude) {
+            updateCoordinates(data.latitude, data.longitude);
+            setZoom(15);
+            setIsDetecting(false);
+            setStatusMessage(`Located near ${data.locality}. Pan map to pinpoint exact doorstep.`);
+            return;
+          }
+        }
+      } catch {}
+      setIsDetecting(false);
+      setStatusMessage('Location permission blocked. Search or pan the real map to pin your doorstep.');
+    };
+
     if (!navigator.geolocation) {
-      setStatusMessage('Geolocation is not supported by your browser.');
+      fallbackToIpCoordinates();
       return;
     }
-
-    setIsDetecting(true);
-    setStatusMessage('Acquiring precise satellite GPS coordinates...');
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
@@ -124,15 +143,11 @@ export default function RealMapLocationPicker({
         setIsDetecting(false);
         reverseGeocode(currentLat, currentLng);
       },
-      (err) => {
-        setIsDetecting(false);
-        if (err.code === 1) {
-          setStatusMessage('Location permission denied. You can search or pan the real map.');
-        } else {
-          setStatusMessage('Unable to acquire GPS signal. Pan the real map to select your location.');
-        }
+      () => {
+        // Fallback to IP geolocation when browser permission is denied
+        fallbackToIpCoordinates();
       },
-      { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+      { enableHighAccuracy: true, timeout: 7000, maximumAge: 0 }
     );
   };
 
