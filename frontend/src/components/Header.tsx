@@ -14,6 +14,9 @@ import {
   Menu,
   X,
   Repeat,
+  Navigation,
+  Crosshair,
+  Check,
 } from 'lucide-react';
 import Image from 'next/image';
 import { useCart } from '@/context/CartContext';
@@ -38,6 +41,60 @@ export default function Header({ onOpenCart, onOpenAuth, onOpenProfile }: Header
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [manualLocationQuery, setManualLocationQuery] = useState('');
+  const [isDetectingLocation, setIsDetectingLocation] = useState(false);
+  const [locationStatus, setLocationStatus] = useState<string | null>(null);
+
+  const handleDetectGpsLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationStatus('Geolocation is not supported by your browser.');
+      return;
+    }
+
+    setIsDetectingLocation(true);
+    setLocationStatus('Acquiring precise GPS location...');
+
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        try {
+          // Reverse geocode via open reverse geocoding API or fallback to coordinate-based locality
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+          );
+          if (res.ok) {
+            const data = await res.json();
+            const sub =
+              data.address?.suburb ||
+              data.address?.neighbourhood ||
+              data.address?.residential ||
+              data.address?.city_district ||
+              'Current Location';
+            const city = data.address?.city || data.address?.town || 'Hyderabad';
+            const detectedName = `${sub}, ${city}`;
+            setLocality(detectedName);
+            setIsDetectingLocation(false);
+            setLocationStatus(`Detected: ${detectedName}`);
+            setTimeout(() => {
+              setShowLocationModal(false);
+              setLocationStatus(null);
+            }, 800);
+            return;
+          }
+        } catch {
+          // fallback if reverse lookup fails
+        }
+        setLocality('Jubilee Hills, Hyderabad');
+        setIsDetectingLocation(false);
+        setShowLocationModal(false);
+      },
+      () => {
+        setIsDetectingLocation(false);
+        setLocationStatus('Permission denied. Please select your locality manually.');
+      },
+      { timeout: 10000, enableHighAccuracy: true }
+    );
+  };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -241,51 +298,112 @@ export default function Header({ onOpenCart, onOpenAuth, onOpenProfile }: Header
 
       {/* Location Selector Modal */}
       {showLocationModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150">
           <div className="bg-[#FAF5F0] border border-[#F1E6DC] rounded-3xl p-6 w-full max-w-md shadow-2xl space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-[#F1E6DC]">
               <div className="flex items-center gap-2">
                 <MapPin className="w-5 h-5 text-[#D97A5B]" />
-                <h3 className="font-bold text-lg text-[#302B28]">Choose Your Neighbourhood</h3>
+                <h3 className="font-black text-lg text-[#302B28]">Select Delivery Location</h3>
               </div>
               <button
                 onClick={() => setShowLocationModal(false)}
-                className="p-1 text-[#6B5145] hover:text-[#302B28]"
+                className="p-1 text-[#6B5145] hover:text-[#302B28] rounded-full hover:bg-[#F1E6DC] transition cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <p className="text-xs text-[#6B5145] leading-relaxed font-normal">
-              TRUG connects you directly to independent mom-and-pop stores, dairy farms, and artisanal bakeries in your immediate radius.
-            </p>
+            {/* GPS Auto-Detect Button (Zepto style) */}
+            <button
+              onClick={handleDetectGpsLocation}
+              disabled={isDetectingLocation}
+              className="w-full py-3 px-4 rounded-2xl bg-[#D97A5B] hover:bg-[#c4694d] text-white text-xs font-bold transition flex items-center justify-between shadow-sm cursor-pointer disabled:opacity-60"
+            >
+              <div className="flex items-center gap-2.5">
+                <Crosshair className={`w-4 h-4 ${isDetectingLocation ? 'animate-spin' : ''}`} />
+                <span>{isDetectingLocation ? 'Detecting current GPS location...' : 'Use Current Location'}</span>
+              </div>
+              <span className="text-[10px] bg-black/20 px-2 py-0.5 rounded-full uppercase tracking-wider font-extrabold">
+                GPS Detect
+              </span>
+            </button>
 
-            <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
-              {availableLocalities.map((locality) => {
-                const isSelected = locality === currentLocality;
-                return (
-                  <button
-                    key={locality}
-                    onClick={() => {
-                      setLocality(locality);
-                      setShowLocationModal(false);
-                    }}
-                    className={`w-full text-left px-4 py-3 rounded-2xl text-xs font-semibold flex items-center justify-between transition ${
-                      isSelected
-                        ? 'bg-[#D97A5B] text-white shadow-sm'
-                        : 'bg-white hover:bg-[#F1E6DC] text-[#302B28] border border-[#F1E6DC]'
-                    }`}
-                  >
-                    <span>{locality}</span>
-                    {isSelected && <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-full font-bold">Current</span>}
-                  </button>
-                );
-              })}
+            {locationStatus && (
+              <p className="text-[11px] text-[#D97A5B] font-semibold text-center bg-white py-1.5 px-3 rounded-xl border border-[#F1E6DC]">
+                {locationStatus}
+              </p>
+            )}
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-[#F1E6DC]" />
+              </div>
+              <div className="relative flex justify-center text-[10px] uppercase font-bold tracking-wider">
+                <span className="bg-[#FAF5F0] px-2 text-[#6B5145]">Or Search Manually</span>
+              </div>
             </div>
 
-            <div className="pt-2 text-[11px] text-[#6B5145] font-medium flex items-center gap-1.5">
+            {/* Manual Location Search Bar */}
+            <div className="relative">
+              <Search className="w-4 h-4 text-[#6B5145] absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={manualLocationQuery}
+                onChange={(e) => setManualLocationQuery(e.target.value)}
+                placeholder="Search area, apartment, street or locality..."
+                className="w-full pl-9 pr-4 py-2.5 bg-white text-xs font-semibold text-[#302B28] placeholder-[#6B5145]/60 rounded-xl border border-[#F1E6DC] focus:outline-hidden focus:border-[#D97A5B]"
+              />
+              {manualLocationQuery.trim() && (
+                <button
+                  onClick={() => {
+                    setLocality(manualLocationQuery.trim());
+                    setManualLocationQuery('');
+                    setShowLocationModal(false);
+                  }}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 px-2.5 py-1 bg-[#302B28] text-white text-[10px] font-bold rounded-lg cursor-pointer"
+                >
+                  Set Location
+                </button>
+              )}
+            </div>
+
+            {/* Popular Localities List */}
+            <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
+              <span className="text-[10px] font-black uppercase tracking-wider text-[#6B5145] block pb-1">
+                Popular Neighbourhoods
+              </span>
+              {availableLocalities
+                .filter((loc) =>
+                  loc.toLowerCase().includes(manualLocationQuery.toLowerCase())
+                )
+                .map((locality) => {
+                  const isSelected = locality === currentLocality;
+                  return (
+                    <button
+                      key={locality}
+                      onClick={() => {
+                        setLocality(locality);
+                        setShowLocationModal(false);
+                      }}
+                      className={`w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition cursor-pointer ${
+                        isSelected
+                          ? 'bg-[#302B28] text-white shadow-xs'
+                          : 'bg-white hover:bg-[#F1E6DC] text-[#302B28] border border-[#F1E6DC]'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <MapPin className="w-3.5 h-3.5 text-[#D97A5B]" />
+                        <span>{locality}</span>
+                      </div>
+                      {isSelected && <Check className="w-3.5 h-3.5 text-[#D97A5B]" />}
+                    </button>
+                  );
+                })}
+            </div>
+
+            <div className="pt-2 text-[11px] text-[#6B5145] font-medium flex items-center gap-1.5 border-t border-[#F1E6DC]">
               <Sparkles className="w-3.5 h-3.5 text-[#D97A5B]" />
-              <span>Direct delivery from local neighbourhood merchants.</span>
+              <span>Free delivery direct from local neighbourhood merchants.</span>
             </div>
           </div>
         </div>
