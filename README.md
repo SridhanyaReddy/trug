@@ -1,95 +1,200 @@
-# TRUG
+# TRUG 🛒
 
-A modern hyperlocal commerce platform connecting residential communities with verified local stores, organic grocers, and dairy providers.
+<div align="center">
 
-**Live Store:** [withtrug.com](https://withtrug.com)
+**Enterprise Hyperlocal Quick-Commerce Engine**
 
----
+*Direct-from-neighbourhood store fulfillment with guaranteed ₹0 delivery fees.*
 
-## Overview
+[![Live Platform](https://img.shields.io/badge/Production-withtrug.com-2ea44f?style=for-the-badge&logo=vercel&logoColor=white)](https://withtrug.com)
+[![Next.js 16](https://img.shields.io/badge/Next.js-16.4-black?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS%20v4-38BDF8?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com/)
 
-TRUG enables direct-to-doorstep delivery from neighbourhood merchants with zero delivery fees. The platform operates on a decentralized fulfillment model, connecting customers directly with local neighbourhood stores.
-
-### Core Capabilities
-
-- **Precision Delivery Pinpoint:** Interactive map interface with GPS auto-detection, draggable pin placement, and landmark search.
-- **Flexible Fulfillment:** Support for both instant express delivery (10–15 minutes) and scheduled slots (Morning, Afternoon, Evening).
-- **Daily Subscriptions:** Automated recurring delivery management for daily essentials such as milk, eggs, and fresh bakery items.
-- **TRUG Wallet:** In-app wallet for instant checkout, easy balance top-ups, and immediate refund processing.
-- **Mobile-First Experience:** Optimized touch navigation with sticky category browsing, floating cart controls, and an app-like bottom navigation dock.
-- **Live Order Tracking:** Real-time visual tracking from order placement through dispatch and doorstep delivery.
-- **Integrated Support:** Direct operational support connected via WhatsApp (+91 95158 03954).
+</div>
 
 ---
 
-## Tech Stack
+## 📌 Executive Summary
 
-- **Framework:** [Next.js](https://nextjs.org/) (App Router, Turbopack)
-- **Language:** [TypeScript](https://www.typescriptlang.org/)
-- **Styling:** [Tailwind CSS](https://tailwindcss.com/)
-- **Database & Auth:** [Supabase](https://supabase.com/) (PostgreSQL)
-- **Mapping:** Leaflet & OpenStreetMap Geocoding
-- **Hosting:** [Vercel](https://vercel.com/)
+**TRUG** is an enterprise-grade hyperlocal quick-commerce application designed to connect urban residential communities directly with neighborhood retail partners, artisanal bakers, local organic grocers, and fresh daily dairy producers. 
+
+Unlike conventional dark-store quick-commerce models that run on high real-estate overheads and delivery surcharges, TRUG orchestrates direct dispatch from verified brick-and-mortar neighborhood stores to doorstep in **10–15 minutes**, backed by a permanent **₹0 delivery fee** guarantee.
 
 ---
 
-## Getting Started
+## ⚡ Core Technical Features
 
-### Prerequisites
+### 1. Dual-Engine Geolocation & Interactive Map Pinpoint
+- **Hardware-Level Geolocation:** Native browser GPS integration with high-accuracy query options.
+- **Draggable Map Interface:** Built with Leaflet and OpenStreetMap geocoding proxies, enabling users to fine-tune doorstep delivery pins directly on an interactive tile map.
+- **Server-Side Reverse Geocoding Proxy:** Integrated proxy API (`/api/geo/geocode` & `/api/geo/ip`) bypassing client CORS restrictions to resolve road, suburb, and locality names reliably.
+- **Network Locality Fallback:** Automated IP geolocation failover calibrated for Hyderabad metro areas (Dundigal, Jubilee Hills, Gachibowli, Madhapur, Kondapur).
 
-- Node.js 18.x or later
-- npm or pnpm
+### 2. Intelligent Fulfillment & Slot Scheduling
+- **Instant Express Dispatch:** Sub-15-minute fulfillment workflow with live order telemetry.
+- **Scheduled Windows:** Morning (06:00–09:00), Afternoon (12:00–15:00), and Evening (18:00–21:00) delivery windows for bulk groceries and meal planning.
+- **Daily Recurring Subscriptions:** Automated subscription engine for daily fresh milk, bread, farm eggs, and greens with pause/resume controls.
 
-### Local Setup
+### 3. Zepto-Style Mobile UX Architecture
+- **Responsive Viewport Configuration:** Capped viewports with touch-first controls, custom mobile address sheets, and slide-over drawers.
+- **Fixed Mobile Navigation Dock:** Native-app feel with bottom tab navigation (`Home`, `Stores`, `Daily`, `Basket`, `Account`) wrapped in Next.js Partial Prerendering suspense boundaries.
+- **Floating Cart Pill:** Auto-elevating floating cart summary positioned above navigation bars with real-time item count badges and price calculation.
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/SridhanyaReddy/trug.git
-   cd trug
-   ```
+### 4. Integrated Payment & TRUG Wallet System
+- **In-App Pre-Paid Wallet:** Stored-value ledger for 1-click order placement, balance top-ups, and automated transaction logs.
+- **Multi-Method Checkout:** Cash on Delivery (COD), UPI, Card/NetBanking, and Wallet deduction.
+- **Zero Surcharge Engine:** Strict ₹0 packaging fees and ₹0 delivery fees applied across all transaction types.
 
-2. **Install dependencies:**
-   ```bash
-   cd frontend
-   npm install
-   ```
-
-3. **Start the development server:**
-   ```bash
-   npm run dev
-   ```
-
-   Open [http://localhost:3000](http://localhost:3000) in your browser.
+### 5. Live Telemetry & Direct WhatsApp Concierge
+- **Real-Time Order Lifecycle:** Visual step progression (`Order Placed` ➔ `Confirmed by Merchant` ➔ `Rider Picked Up` ➔ `Out for Delivery` ➔ `Delivered`).
+- **Direct Dispatch WhatsApp Hook:** Automated one-click WhatsApp customer support pipeline routed directly to operations at `+91 95158 03954`.
 
 ---
 
-## Environment Variables
+## 🏗️ System Architecture
 
-To connect live external services, configure the following in `frontend/.env.local`:
-
-```env
-# Supabase
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
-
-# Support Contact
-NEXT_PUBLIC_SUPPORT_PHONE=9515803954
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│                        TRUG CLIENT APPLICATION                         │
+├───────────────────────────────────┬────────────────────────────────────┤
+│  Storefront Experience (App Router) │  State & Context Engines          │
+│  • Home & Catalog (/shops)        │  • CartContext (Local & Cloud Sync)│
+│  • Category Flow (/categories)    │  • Wallet & Addresses Engine       │
+│  • Recurring Subscriptions        │  • AuthModal & OTP Flow            │
+├───────────────────────────────────┴────────────────────────────────────┤
+│                         NEXT.JS API BACKEND                            │
+├────────────────────────────────────────────────────────────────────────┤
+│  • /api/products          • /api/categories      • /api/customer       │
+│  • /api/orders/place      • /api/geo/geocode     • /api/customer/wallet│
+│  • /api/customer/addresses• /api/geo/ip          • /api/health         │
+├────────────────────────────────────────────────────────────────────────┤
+│                       DATA & EXTERNAL SERVICES                         │
+├───────────────────┬───────────────────┬────────────────────────────────┤
+│ 🐘 Supabase PG    │ 🗺️ Leaflet / OSM  │ 💬 WhatsApp Business API       │
+│ Database & Auth   │ Map Geocoding     │ Direct Operational Support     │
+└───────────────────┴───────────────────┴────────────────────────────────┘
 ```
 
 ---
 
-## Deployment
+## 🛠️ Technology Matrix
 
-The application is configured for deployment on Vercel:
-
-1. Import the repository into your Vercel account.
-2. Set the **Root Directory** to `frontend`.
-3. Add any necessary environment variables.
-4. Click **Deploy**.
+| Domain | Technology / Library | Role |
+| :--- | :--- | :--- |
+| **Framework** | Next.js 16 (Turbopack) | Server/Client components, SSR, and dynamic streaming |
+| **Language** | TypeScript 5.x | Strict end-to-end typing across models and API contracts |
+| **Styling** | Tailwind CSS v4 | Responsive utility design system with customized warm TRUG palette |
+| **Icons** | Lucide React | Unified iconography system |
+| **Maps & GIS** | Leaflet & React-Leaflet | Draggable pin canvas, dynamic tile layer rendering |
+| **Database** | Supabase (PostgreSQL) | Managed database storage with connection pooling |
+| **Deployment** | Vercel Edge Network | Global CDN caching, edge serverless API routes |
 
 ---
 
-## License
+## 📂 Project Structure
 
-Copyright &copy; 2026 TRUG. All rights reserved.
+```text
+trug/
+├── frontend/
+│   ├── public/                 # Static assets, SVG icons, logo assets
+│   ├── src/
+│   │   ├── app/                # Next.js App Router routes & API endpoints
+│   │   │   ├── api/            # Serverless API routes (geo, orders, wallet, customer)
+│   │   │   ├── categories/     # Dynamic category browsing
+│   │   │   ├── product/        # Product detail pages
+│   │   │   ├── recurring/      # Daily subscription management
+│   │   │   ├── shops/          # Neighbourhood store discovery
+│   │   │   ├── profile/        # Customer address book & order history
+│   │   │   ├── layout.tsx      # Root layout with responsive viewport & meta
+│   │   │   └── page.tsx        # Homepage hero, categories, and storefront
+│   │   ├── components/         # Reusable UI component library
+│   │   │   ├── AppShell.tsx    # Responsive shell, floating cart, drawers
+│   │   │   ├── Header.tsx      # Responsive header with location selector
+│   │   │   ├── MobileBottomNav # Zepto-style fixed mobile navigation dock
+│   │   │   ├── RealMapLocation # Draggable Leaflet map modal with GPS detect
+│   │   │   ├── CartDrawer.tsx  # Slide-over checkout drawer
+│   │   │   └── FAQSection.tsx  # Customer FAQ with direct WhatsApp trigger
+│   │   ├── context/            # Global React Context providers (Cart, Auth)
+│   │   ├── services/           # Supabase live database connection utilities
+│   │   └── types/              # Type definitions and Supabase schema types
+│   ├── next.config.ts          # Turbopack & Next.js production configuration
+│   ├── package.json            # Project dependencies and script declarations
+│   └── tsconfig.json           # Strict TypeScript compiler options
+└── README.md                   # Enterprise project documentation
+```
+
+---
+
+## 🚀 Local Development Setup
+
+### Prerequisites
+- **Node.js**: `v20.0.0` or higher
+- **npm** or **pnpm**
+- **Git**
+
+### Installation Steps
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/SridhanyaReddy/trug.git
+   cd trug/frontend
+   ```
+
+2. **Install project dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Configure Environment Variables:**
+   Create `.env.local` inside the `frontend/` directory:
+   ```env
+   # Supabase Database Configuration
+   NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+   SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+
+   # Operational Support Configuration
+   NEXT_PUBLIC_SUPPORT_PHONE=9515803954
+   ```
+
+4. **Run the local development server:**
+   ```bash
+   npm run dev
+   ```
+   Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+5. **Execute Production Build Verification:**
+   ```bash
+   npm run build
+   ```
+
+---
+
+## 🚢 Production Deployment
+
+The project is configured for continuous zero-downtime deployment on **Vercel**:
+
+1. Link the GitHub repository to Vercel.
+2. Select **Next.js** framework preset.
+3. Configure **Root Directory** as `frontend`.
+4. Add environment variables under project settings.
+5. Deploy — builds automatically through Next.js 16 Turbopack pipeline.
+
+---
+
+## 📞 Support & Community
+
+- **Official Web Portal:** [withtrug.com](https://withtrug.com)
+- **Direct WhatsApp Concierge:** [+91 95158 03954](https://wa.me/919515803954?text=Hi%20TRUG%20Support)
+- **Primary Service Metro:** Hyderabad, India
+
+---
+
+<div align="center">
+
+Copyright &copy; 2026 **TRUG by Focsera**. All rights reserved.  
+*Empowering local neighbourhood commerce.*
+
+</div>
