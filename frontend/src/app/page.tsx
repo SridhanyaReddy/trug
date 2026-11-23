@@ -83,15 +83,17 @@ export default function HomePage() {
               {/* Live Metric Badges */}
               <div className="pt-6 grid grid-cols-3 gap-4 border-t border-[#F1E6DC] max-w-lg">
                 <div>
-                  <div className="text-2xl font-black text-[#302B28]">{vendors.length || '2'}</div>
+                  <div className="text-2xl font-black text-[#302B28]">{vendors.length}</div>
                   <div className="text-xs text-[#6B5145] font-medium">Verified Stores</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-black text-[#D97A5B]">{products.length || '8'}</div>
+                  <div className="text-2xl font-black text-[#D97A5B]">{products.length}</div>
                   <div className="text-xs text-[#6B5145] font-medium">Live Products</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-black text-[#302B28]">100%</div>
+                  <div className="text-2xl font-black text-[#302B28]">
+                    {vendors.length > 0 ? '100%' : '0%'}
+                  </div>
                   <div className="text-xs text-[#6B5145] font-medium">Hyperlocal Verified</div>
                 </div>
               </div>
