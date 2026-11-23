@@ -69,7 +69,7 @@ export default function UserProfilePage() {
     setNewRecipient(user.name || '');
 
     setIsLoading(true);
-    fetch(`/api/customer?phone=${encodeURIComponent(sessionPhone || '+919392449721')}`)
+    fetch(`/api/customer?phone=${encodeURIComponent(sessionPhone || '+919515803954')}`)
       .then((r) => r.json())
       .then((data) => {
         setIsLoading(false);

@@ -121,7 +121,7 @@ export async function getLiveVendors(): Promise<Vendor[]> {
           city: 'Hyderabad',
           pincode: '500033',
         },
-        phone: '+91 93924 49721',
+        phone: '+91 95158 03954',
         coverImage,
         logo: coverImage,
         featuredBadges: ['Verified TRUG Merchant', 'Instant Delivery Available'],

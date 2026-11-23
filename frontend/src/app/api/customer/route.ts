@@ -4,7 +4,7 @@ import { executeTrugSql } from '@/services/liveDatabase';
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const rawPhone = searchParams.get('phone') || '+919392449721';
+    const rawPhone = searchParams.get('phone') || '+919515803954';
     const cleanDigits = rawPhone.replace(/\D/g, '').slice(-10);
     const phoneE164 = `+91${cleanDigits}`;
 

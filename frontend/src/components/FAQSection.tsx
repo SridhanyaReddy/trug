@@ -165,7 +165,7 @@ export default function FAQSection() {
             </div>
           </div>
           <a
-            href="https://wa.me/919392449721?text=Hi%20TRUG%20Team,%20I%20have%20a%20question%20about%20an%20order"
+            href="https://wa.me/919515803954?text=Hi%20TRUG%20Team,%20I%20have%20a%20question%20about%20an%20order"
             target="_blank"
             rel="noopener noreferrer"
             className="px-5 py-2.5 rounded-full bg-[#302B28] hover:bg-black text-white text-xs font-bold transition shadow-xs cursor-pointer inline-flex items-center gap-2"

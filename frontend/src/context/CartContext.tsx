@@ -105,14 +105,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<CustomerProfile>({
     id: 'usr-default',
     name: 'Customer Account',
-    phone: '+91 93924 49721',
+    phone: '+91 95158 03954',
     email: 'customer@trug.in',
     addresses: [
       {
         id: 'addr-1',
         tag: 'Home',
         name: 'Primary Address',
-        phone: '+91 93924 49721',
+        phone: '+91 95158 03954',
         addressLine: 'Road No. 36, Jubilee Hills',
         locality: 'Jubilee Hills, Hyderabad',
         isDefault: true,
