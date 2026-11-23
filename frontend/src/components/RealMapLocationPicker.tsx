@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import dynamic from 'next/dynamic';
 import {
   MapPin,
   Crosshair,
@@ -11,8 +12,19 @@ import {
   Compass,
   AlertCircle,
   Loader2,
-  ExternalLink,
+  Layers,
 } from 'lucide-react';
+
+// Dynamic import with ssr: false for Leaflet
+const LeafletMapView = dynamic(() => import('@/components/LeafletMapView'), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-full flex items-center justify-center bg-[#E5E3DF] text-xs font-bold text-[#6B5145]">
+      <Loader2 className="w-5 h-5 animate-spin mr-2 text-[#D97A5B]" />
+      <span>Loading Interactive Map...</span>
+    </div>
+  ),
+});
 
 interface RealMapLocationPickerProps {
   isOpen: boolean;
@@ -32,15 +44,17 @@ export default function RealMapLocationPicker({
   isOpen,
   onClose,
   onSelectLocation,
-  initialLat = 17.4319,
-  initialLng = 78.4073,
-  initialLocality = 'Jubilee Hills, Hyderabad',
+  initialLat = 17.5878, // Dundigal, Hyderabad default
+  initialLng = 78.4312,
+  initialLocality = 'Dundigal, Hyderabad',
 }: RealMapLocationPickerProps) {
   const [lat, setLat] = useState<number>(initialLat);
   const [lng, setLng] = useState<number>(initialLng);
+  const [viewMode, setViewMode] = useState<'interactive' | 'google'>('interactive');
   const [isDetecting, setIsDetecting] = useState<boolean>(false);
   const [isGeocoding, setIsGeocoding] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
   const [addressDetails, setAddressDetails] = useState<{
     display: string;
     locality: string;
@@ -57,7 +71,7 @@ export default function RealMapLocationPicker({
 
   const reverseGeocode = async (latitude: number, longitude: number) => {
     setIsGeocoding(true);
-    setStatusMessage('Fetching live address from map...');
+    setStatusMessage('Fetching live street address...');
     try {
       const res = await fetch(`/api/geo/geocode?action=reverse&lat=${latitude}&lon=${longitude}`);
       if (res.ok) {
@@ -75,7 +89,7 @@ export default function RealMapLocationPicker({
         }
       }
     } catch {
-      setStatusMessage('Address lookup complete.');
+      setStatusMessage('Address lookup completed.');
     } finally {
       setIsGeocoding(false);
     }
@@ -87,12 +101,12 @@ export default function RealMapLocationPicker({
     if (geocodeTimeoutRef.current) clearTimeout(geocodeTimeoutRef.current);
     geocodeTimeoutRef.current = setTimeout(() => {
       reverseGeocode(newLat, newLng);
-    }, 500);
+    }, 400);
   };
 
   const handleDetectGps = () => {
     setIsDetecting(true);
-    setStatusMessage('Locating your position...');
+    setStatusMessage('Requesting GPS device coordinates...');
 
     const fallbackToIp = async () => {
       try {
@@ -103,13 +117,13 @@ export default function RealMapLocationPicker({
           if (data && data.latitude && data.longitude) {
             updateCoordinates(data.latitude, data.longitude);
             setIsDetecting(false);
-            setStatusMessage(`Located: ${data.locality}. Allow location in Chrome lock icon for exact doorstep GPS.`);
+            setStatusMessage(`Located near ${data.locality}. Drag the pin to your exact doorstep.`);
             return;
           }
         }
       } catch {}
       setIsDetecting(false);
-      setStatusMessage('Please search or pan the map to set your delivery doorstep.');
+      setStatusMessage('Drag the red pin on the map to pinpoint your exact doorstep.');
     };
 
     if (!navigator.geolocation) {
@@ -124,11 +138,12 @@ export default function RealMapLocationPicker({
         setLat(currentLat);
         setLng(currentLng);
         setIsDetecting(false);
+        setStatusMessage('Exact GPS coordinates detected!');
         reverseGeocode(currentLat, currentLng);
       },
       (err) => {
         if (err.code === 1) {
-          setStatusMessage('Browser location permission denied. Click lock icon in URL bar to Allow GPS.');
+          setStatusMessage('Browser location blocked. Click the lock icon in URL bar to Allow GPS.');
         }
         fallbackToIp();
       },
@@ -141,7 +156,7 @@ export default function RealMapLocationPicker({
     if (!searchQuery.trim()) return;
 
     setIsGeocoding(true);
-    setStatusMessage(`Searching "${searchQuery.trim()}" on Google Maps...`);
+    setStatusMessage(`Searching "${searchQuery.trim()}" on map...`);
 
     try {
       const res = await fetch(
@@ -150,8 +165,9 @@ export default function RealMapLocationPicker({
       if (res.ok) {
         const json = await res.json();
         if (json.success && json.results && json.results.length > 0) {
-          const item = json.results[0];
-          updateCoordinates(item.lat, item.lng);
+          setSearchResults(json.results);
+          const first = json.results[0];
+          updateCoordinates(first.lat, first.lng);
           setStatusMessage(null);
           return;
         }
@@ -160,7 +176,7 @@ export default function RealMapLocationPicker({
         display: searchQuery.trim(),
         locality: searchQuery.trim(),
       });
-      setStatusMessage(`Selected "${searchQuery.trim()}". You can confirm or pan the pin.`);
+      setStatusMessage(`Selected "${searchQuery.trim()}". Drag pin to adjust.`);
     } catch {
       setAddressDetails({
         display: searchQuery.trim(),
@@ -169,10 +185,6 @@ export default function RealMapLocationPicker({
     } finally {
       setIsGeocoding(false);
     }
-  };
-
-  const panMap = (dLat: number, dLng: number) => {
-    updateCoordinates(lat + dLat, lng + dLng);
   };
 
   useEffect(() => {
@@ -186,7 +198,7 @@ export default function RealMapLocationPicker({
 
   if (!isOpen) return null;
 
-  // Real Google Maps Embed URL - standard interactive maps preview with road network & pins
+  // Google Maps Static Embed View
   const googleMapsUrl = `https://maps.google.com/maps?q=${lat},${lng}&hl=en&z=16&output=embed`;
 
   return (
@@ -201,24 +213,34 @@ export default function RealMapLocationPicker({
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="font-black text-base sm:text-lg text-[#302B28] leading-tight">
-                  Google Maps Delivery Pin
+                  Real Map Delivery Pin
                 </h3>
-                <span className="text-[10px] bg-[#D97A5B] text-white font-black uppercase px-2 py-0.5 rounded-full tracking-wider">
-                  Live
+                <span className="text-[10px] bg-emerald-600 text-white font-extrabold uppercase px-2 py-0.5 rounded-full tracking-wider">
+                  Drag & Drop
                 </span>
               </div>
               <p className="text-[11px] text-[#6B5145] font-semibold">
-                Pinpoint your exact delivery address and doorstep
+                Drag the pin or tap anywhere on the map to pinpoint your doorstep
               </p>
             </div>
           </div>
 
-          <button
-            onClick={onClose}
-            className="p-2 text-[#6B5145] hover:text-[#302B28] rounded-full hover:bg-[#FAF5F0] transition cursor-pointer"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setViewMode(viewMode === 'interactive' ? 'google' : 'interactive')}
+              className="text-[10px] font-bold text-[#6B5145] hover:text-[#302B28] bg-[#FAF5F0] px-2.5 py-1.5 rounded-xl border border-[#F1E6DC] flex items-center gap-1.5 cursor-pointer"
+              title="Toggle View Mode"
+            >
+              <Layers className="w-3.5 h-3.5 text-[#D97A5B]" />
+              <span>{viewMode === 'interactive' ? 'Google View' : 'Draggable Pin'}</span>
+            </button>
+            <button
+              onClick={onClose}
+              className="p-2 text-[#6B5145] hover:text-[#302B28] rounded-full hover:bg-[#FAF5F0] transition cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Map Search Bar & GPS Auto Detect Bar */}
@@ -229,7 +251,7 @@ export default function RealMapLocationPicker({
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search Dundigal, apartment, road, or landmark..."
+                placeholder="Search Dundigal, apartment, street or landmark..."
                 className="w-full pl-9 pr-20 py-2.5 bg-white text-xs font-semibold text-[#302B28] placeholder-[#6B5145]/70 rounded-2xl border border-[#F1E6DC] focus:outline-hidden focus:border-[#D97A5B] shadow-2xs"
               />
               <Search className="w-4 h-4 text-[#6B5145] absolute left-3 top-1/2 -translate-y-1/2" />
@@ -271,103 +293,75 @@ export default function RealMapLocationPicker({
               <button
                 key={chip.name}
                 type="button"
-                onClick={() => updateCoordinates(chip.lat, chip.lng)}
+                onClick={() => {
+                  updateCoordinates(chip.lat, chip.lng);
+                  setSearchResults([]);
+                }}
                 className="px-2.5 py-1 rounded-full bg-white hover:bg-[#F1E6DC] text-[#302B28] border border-[#F1E6DC] text-[10px] font-bold whitespace-nowrap transition cursor-pointer shadow-2xs"
               >
                 {chip.name.split(',')[0]}
               </button>
             ))}
           </div>
+
+          {/* Search Results Dropdown if multiple found */}
+          {searchResults.length > 1 && (
+            <div className="bg-white rounded-2xl border border-[#F1E6DC] p-2 space-y-1 max-h-36 overflow-y-auto">
+              <span className="text-[10px] uppercase font-bold text-[#6B5145] px-2 block">
+                Matching Locations (Tap to Select):
+              </span>
+              {searchResults.map((res, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => {
+                    updateCoordinates(res.lat, res.lng);
+                    setSearchResults([]);
+                  }}
+                  className="w-full text-left p-2 rounded-xl hover:bg-[#FAF5F0] text-xs font-semibold text-[#302B28] flex items-center gap-2"
+                >
+                  <MapPin className="w-3.5 h-3.5 text-[#D97A5B] shrink-0" />
+                  <span className="truncate">{res.display}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* Interactive Real Map Area */}
+        {/* Real Interactive Map Area */}
         <div className="relative w-full h-72 sm:h-84 bg-[#E5E3DF] overflow-hidden">
-          {/* Real Google Maps Iframe */}
-          <iframe
-            key={googleMapsUrl}
-            title="Google Maps Delivery Pin"
-            width="100%"
-            height="100%"
-            frameBorder="0"
-            scrolling="no"
-            marginHeight={0}
-            marginWidth={0}
-            src={googleMapsUrl}
-            className="w-full h-full border-0 filter saturate-105"
-          />
-
-          {/* Central Delivery Pin Marker Overlay */}
-          <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-10 -translate-y-4">
-            <div className="flex flex-col items-center animate-bounce duration-700">
-              <div className="bg-[#302B28] text-white text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full shadow-lg border border-white/30 tracking-wider">
-                Order Delivery Doorstep
-              </div>
-              <div className="w-8 h-8 rounded-full bg-[#D97A5B] border-2 border-white shadow-xl flex items-center justify-center text-white mt-1">
-                <MapPin className="w-5 h-5 fill-white stroke-[#D97A5B]" />
-              </div>
-              <div className="w-2.5 h-1 bg-black/40 rounded-full blur-[1px] mt-0.5" />
-            </div>
-          </div>
-
-          {/* Map Pan Adjusters Overlay */}
-          <div className="absolute right-3 bottom-3 z-20 flex flex-col gap-1.5 bg-white/95 backdrop-blur-xs p-1.5 rounded-2xl border border-[#F1E6DC] shadow-md">
-            <div className="text-[9px] font-extrabold uppercase text-[#6B5145] text-center px-1">
-              Adjust Pin
-            </div>
-            <div className="grid grid-cols-3 gap-1 w-24">
-              <div />
-              <button
-                type="button"
-                onClick={() => panMap(0.001, 0)}
-                className="p-1.5 bg-[#FAF5F0] hover:bg-[#F1E6DC] text-[#302B28] rounded-lg text-xs font-bold flex items-center justify-center cursor-pointer"
-                title="Pan North"
-              >
-                ▲
-              </button>
-              <div />
-              <button
-                type="button"
-                onClick={() => panMap(0, -0.001)}
-                className="p-1.5 bg-[#FAF5F0] hover:bg-[#F1E6DC] text-[#302B28] rounded-lg text-xs font-bold flex items-center justify-center cursor-pointer"
-                title="Pan West"
-              >
-                ◀
-              </button>
-              <button
-                type="button"
-                onClick={handleDetectGps}
-                className="p-1.5 bg-[#D97A5B] text-white rounded-lg text-xs font-bold flex items-center justify-center cursor-pointer"
-                title="Reset to GPS"
-              >
-                <Crosshair className="w-3.5 h-3.5" />
-              </button>
-              <button
-                type="button"
-                onClick={() => panMap(0, 0.001)}
-                className="p-1.5 bg-[#FAF5F0] hover:bg-[#F1E6DC] text-[#302B28] rounded-lg text-xs font-bold flex items-center justify-center cursor-pointer"
-                title="Pan East"
-              >
-                ▶
-              </button>
-              <div />
-              <button
-                type="button"
-                onClick={() => panMap(-0.001, 0)}
-                className="p-1.5 bg-[#FAF5F0] hover:bg-[#F1E6DC] text-[#302B28] rounded-lg text-xs font-bold flex items-center justify-center cursor-pointer"
-                title="Pan South"
-              >
-                ▼
-              </button>
-              <div />
-            </div>
-          </div>
+          {viewMode === 'interactive' ? (
+            <LeafletMapView
+              lat={lat}
+              lng={lng}
+              onCoordinatesChange={(newLat, newLng) => updateCoordinates(newLat, newLng)}
+            />
+          ) : (
+            <iframe
+              key={googleMapsUrl}
+              title="Google Maps Delivery Pin"
+              width="100%"
+              height="100%"
+              frameBorder="0"
+              scrolling="no"
+              marginHeight={0}
+              marginWidth={0}
+              src={googleMapsUrl}
+              className="w-full h-full border-0 filter saturate-105"
+            />
+          )}
 
           {/* Coordinates indicator badge */}
-          <div className="absolute left-3 bottom-3 z-20 bg-white/95 backdrop-blur-xs px-2.5 py-1 rounded-xl border border-[#F1E6DC] text-[10px] font-bold text-[#6B5145] shadow-xs flex items-center gap-1.5">
+          <div className="absolute left-3 bottom-3 z-30 bg-white/95 backdrop-blur-xs px-2.5 py-1 rounded-xl border border-[#F1E6DC] text-[10px] font-bold text-[#6B5145] shadow-xs flex items-center gap-1.5">
             <Navigation className="w-3 h-3 text-[#D97A5B]" />
             <span>
               {lat.toFixed(5)}, {lng.toFixed(5)}
             </span>
+          </div>
+
+          {/* Hint Overlay */}
+          <div className="absolute right-3 bottom-3 z-30 bg-black/70 backdrop-blur-xs text-white px-2.5 py-1 rounded-xl text-[10px] font-extrabold shadow-sm">
+            Tap or drag pin to exact house
           </div>
         </div>
 
