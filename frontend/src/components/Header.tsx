@@ -52,7 +52,7 @@ export default function Header({ onOpenCart, onOpenAuth, onOpenProfile }: Header
         {/* Top Mini Bar: Neighbourhood assurance banner */}
         <div className="bg-[#6B5145] text-[#FAF5F0] text-xs py-2 px-4 text-center font-medium flex items-center justify-center gap-2">
           <Sparkles className="w-3.5 h-3.5 text-[#D97A5B]" />
-          <span>Hyperlocal direct-from-neighbourhood shops. Deliveries within 15-30 minutes.</span>
+          <span>Hyperlocal direct-from-neighbourhood shops. Fresh daily essentials delivered to your doorstep.</span>
         </div>
 
         {/* Main Navbar */}
@@ -92,7 +92,7 @@ export default function Header({ onOpenCart, onOpenAuth, onOpenProfile }: Header
               </div>
               <div className="flex flex-col text-left truncate">
                 <span className="text-[10px] font-black text-[#D97A5B] uppercase tracking-wider leading-none">
-                  Delivery in 15 mins
+                  Delivering to
                 </span>
                 <span className="truncate text-xs font-bold leading-tight mt-0.5">{currentLocality}</span>
               </div>
@@ -284,8 +284,8 @@ export default function Header({ onOpenCart, onOpenAuth, onOpenProfile }: Header
             </div>
 
             <div className="pt-2 text-[11px] text-[#6B5145] font-medium flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5 text-[#D97A5B]" />
-              <span>Standard delivery radius: 2.5 km for 15-30 min arrival.</span>
+              <Sparkles className="w-3.5 h-3.5 text-[#D97A5B]" />
+              <span>Direct delivery from local neighbourhood merchants.</span>
             </div>
           </div>
         </div>

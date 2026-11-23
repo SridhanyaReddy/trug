@@ -108,7 +108,7 @@ export async function getLiveVendors(): Promise<Vendor[]> {
         category: (r.shop_slug.includes('daily-loaf') ? 'Bakery' : 'Vegetables & Fruits') as any,
         rating: 4.9,
         reviewsCount: 38,
-        deliveryTime: `${r.acceptance_minutes || 15}-${(r.acceptance_minutes || 15) + 15} mins`,
+        deliveryTime: 'Same Day Delivery',
         distance: '0.8 km',
         minimumOrder: 50,
         deliveryFee: (r.delivery_fee_paise || 2500) / 100,

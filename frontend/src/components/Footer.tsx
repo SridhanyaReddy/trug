@@ -14,7 +14,7 @@ export default function Footer() {
               <Truck className="w-6 h-6" />
             </div>
             <div>
-              <h4 className="font-bold text-sm text-[#FAF5F0]">15-30 Min Neighbourhood Deliveries</h4>
+              <h4 className="font-bold text-sm text-[#FAF5F0]">Neighbourhood Deliveries</h4>
               <p className="text-xs text-[#FAF5F0]/70 mt-0.5">Sourced from stores right around your corner.</p>
             </div>
           </div>

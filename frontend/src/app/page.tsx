@@ -114,7 +114,7 @@ export default function HomePage() {
                     Fresh From Neighbourhood Outlets
                   </span>
                   <h3 className="text-xl font-black">Direct from Local Grocers</h3>
-                  <p className="text-xs text-[#FAF5F0]/90 mt-1">Farm fresh milk, vegetables, fruits, sourdough & pantry essentials delivered in minutes.</p>
+                  <p className="text-xs text-[#FAF5F0]/90 mt-1">Farm fresh milk, vegetables, fruits, sourdough & pantry essentials from local merchants.</p>
                 </div>
               </div>
             </div>

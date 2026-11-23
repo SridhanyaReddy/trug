@@ -187,7 +187,7 @@ export default function ProfileDrawer({ isOpen, onClose, onOpenAuth }: ProfileDr
                 <div>
                   <h3 className="text-base font-black text-[#302B28]">Login to your TRUG account</h3>
                   <p className="text-xs text-[#6B5145] mt-1">
-                    Access saved addresses, past orders, and instant 15-minute checkout.
+                    Access saved addresses, past orders, and quick neighbourhood checkout.
                   </p>
                 </div>
                 <button

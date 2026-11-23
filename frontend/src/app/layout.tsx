@@ -5,7 +5,7 @@ import AppShell from '@/components/AppShell';
 
 export const metadata: Metadata = {
   title: 'TRUG by Focsera | Hyperlocal Neighbourhood Commerce',
-  description: 'Discover nearby independent shops and order fresh everyday essentials delivered to your doorstep in 15-30 minutes.',
+  description: 'Discover nearby independent shops and order fresh everyday essentials delivered directly to your doorstep.',
   icons: {
     icon: '/favicon.ico',
     shortcut: '/favicon.ico',
