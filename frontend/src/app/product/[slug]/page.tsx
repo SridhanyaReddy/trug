@@ -24,19 +24,34 @@ import {
 
 function ProductDetailContent() {
   const params = useParams();
-  const slug = params.slug as string;
-  const { getProductBySlug, addToCart, getVendorById } = useCart();
+  const rawSlug = (params?.slug || '') as string;
+  const decodedSlug = decodeURIComponent(rawSlug).trim();
 
-  const product = getProductBySlug(slug);
+  const { getProductBySlug, addToCart, getVendorById, isLoadingDatabase } = useCart();
 
-  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(
-    product?.variants.find((v) => v.id === product.defaultVariantId) || product?.variants[0] || null
-  );
+  const product = getProductBySlug(decodedSlug) || getProductBySlug(rawSlug);
+
+  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
   const [quantity, setQuantity] = useState<number>(1);
   const [addedEffect, setAddedEffect] = useState<boolean>(false);
   const [showRecurringModal, setShowRecurringModal] = useState<boolean>(false);
 
-  if (!product || !selectedVariant) {
+  const activeVariant: ProductVariant | null =
+    selectedVariant ||
+    product?.variants.find((v) => v.id === product.defaultVariantId) ||
+    product?.variants[0] ||
+    null;
+
+  if (!product || !activeVariant) {
+    if (isLoadingDatabase) {
+      return (
+        <div className="max-w-3xl mx-auto px-4 py-20 text-center space-y-4">
+          <div className="w-10 h-10 border-4 border-[#D97A5B] border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-xs text-[#6B5145]">Loading product details...</p>
+        </div>
+      );
+    }
+
     return (
       <div className="max-w-3xl mx-auto px-4 py-20 text-center space-y-4">
         <h2 className="text-2xl font-serif font-bold text-[#302B28]">Product Not Found</h2>
@@ -54,7 +69,7 @@ function ProductDetailContent() {
   const vendor = getVendorById(product.vendorId);
 
   const handleAddToCart = () => {
-    addToCart(product, selectedVariant, quantity);
+    addToCart(product, activeVariant, quantity);
     setAddedEffect(true);
     setTimeout(() => setAddedEffect(false), 1200);
   };
@@ -129,15 +144,15 @@ function ProductDetailContent() {
           <div className="bg-white p-5 rounded-3xl border border-[#F1E6DC] space-y-4">
             <div className="flex items-baseline gap-3">
               <span className="text-3xl font-black text-[#302B28]">
-                ₹{selectedVariant.price * quantity}
+                ₹{activeVariant.price * quantity}
               </span>
-              {selectedVariant.originalPrice && (
+              {activeVariant.originalPrice && (
                 <span className="text-base text-[#6B5145]/60 line-through">
-                  ₹{selectedVariant.originalPrice * quantity}
+                  ₹{activeVariant.originalPrice * quantity}
                 </span>
               )}
               <span className="text-xs text-[#6B5145] font-medium">
-                (₹{selectedVariant.price} per {selectedVariant.name})
+                (₹{activeVariant.price} per {activeVariant.name})
               </span>
             </div>
 
@@ -148,7 +163,7 @@ function ProductDetailContent() {
               </label>
               <div className="flex flex-wrap gap-2">
                 {product.variants.map((v) => {
-                  const isSelected = selectedVariant.id === v.id;
+                  const isSelected = activeVariant.id === v.id;
                   return (
                     <button
                       key={v.id}

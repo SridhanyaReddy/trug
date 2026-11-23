@@ -26,36 +26,24 @@ import {
 
 function StoreFrontContent() {
   const params = useParams();
-  const slug = params['vendor-slug'] as string;
-  const { getVendorBySlug, getProductsByVendor, showToast } = useCart();
+  const rawSlug = (params?.['vendor-slug'] || '') as string;
+  const decodedSlug = decodeURIComponent(rawSlug).trim();
 
-  const vendor = getVendorBySlug(slug);
+  const { getVendorBySlug, getProductsByVendor, showToast, isLoadingDatabase } = useCart();
+
+  const vendor = getVendorBySlug(decodedSlug) || getVendorBySlug(rawSlug);
 
   const [activeCategory, setActiveCategory] = useState<string>('All');
   const [inStoreSearch, setInStoreSearch] = useState<string>('');
   const [showQrModal, setShowQrModal] = useState<boolean>(false);
   const [modalProduct, setModalProduct] = useState<{ product: Product; variant: ProductVariant } | null>(null);
 
-  if (!vendor) {
-    return (
-      <div className="max-w-3xl mx-auto px-4 py-20 text-center space-y-4">
-        <h2 className="text-2xl font-serif font-bold text-[#302B28]">Store Not Found</h2>
-        <p className="text-xs text-[#6B5145]">
-          The neighbourhood shop you are looking for does not exist or has relocated.
-        </p>
-        <Link
-          href="/shops"
-          className="inline-block px-5 py-2.5 rounded-full bg-[#D97A5B] text-white text-xs font-bold"
-        >
-          Browse Active Shops
-        </Link>
-      </div>
-    );
-  }
-
-  const products = getProductsByVendor(vendor.id);
+  const products = useMemo(() => {
+    return vendor ? getProductsByVendor(vendor.id) : [];
+  }, [vendor, getProductsByVendor]);
 
   const filteredProducts = useMemo(() => {
+    if (!products || products.length === 0) return [];
     return products.filter((p) => {
       const matchesSearch =
         p.name.toLowerCase().includes(inStoreSearch.toLowerCase()) ||
@@ -74,6 +62,32 @@ function StoreFrontContent() {
       showToast('Store link copied to clipboard!');
     }
   };
+
+  if (!vendor) {
+    if (isLoadingDatabase) {
+      return (
+        <div className="max-w-3xl mx-auto px-4 py-20 text-center space-y-4">
+          <div className="w-10 h-10 border-4 border-[#D97A5B] border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-xs text-[#6B5145]">Loading storefront details...</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="max-w-3xl mx-auto px-4 py-20 text-center space-y-4">
+        <h2 className="text-2xl font-serif font-bold text-[#302B28]">Store Not Found</h2>
+        <p className="text-xs text-[#6B5145]">
+          The neighbourhood shop you are looking for does not exist or has relocated.
+        </p>
+        <Link
+          href="/shops"
+          className="inline-block px-5 py-2.5 rounded-full bg-[#D97A5B] text-white text-xs font-bold"
+        >
+          Browse Active Shops
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="pb-16 space-y-8">
