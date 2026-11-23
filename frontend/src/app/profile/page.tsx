@@ -622,4 +622,7 @@ export default function UserProfilePage() {
             </form>
           </div>
         </div>
-      )
+      )}
+    </div>
+  );
+}
